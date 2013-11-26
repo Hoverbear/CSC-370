@@ -59,11 +59,26 @@ def select_queries():
 
 # Auxilary Functions
 def select_all(target):
+    """
+    Selects all from a given table of query, printing them out nicely.
+    """
+    
     cursor.execute("""
     select * from %s;
     """ % (target)) # No risk of injection here.
-    for item in cursor.fetchall():
-        print item
+    return {'schema': [desc[0] for desc in cursor.description], 'data': cursor.fetchall()}
+    
+def print_as_table(schema, results):
+    """
+    Prints the given Schema and results as a table.
+    """
+    # Get the Table Descriptors.
+    schemaString = ''.join(["{:>25}|".format(i) for i in schema])
+    print schemaString
+    print '-' * len(schemaString)
+    # Print out the items.
+    for item in results:
+        print ''.join(["{:>25}|".format(i) for i in item])
 
 # Main
 def main(argv=None):
@@ -102,11 +117,13 @@ def main(argv=None):
             # Browse Queries.
             query = select_queries();
             if query is not None:
-                select_all(query)
+                result = select_all(query)
+                print_as_table(result['schema'], result['data'])
             else:
                 continue
         elif input == 'i':
             # Insert items.
+            item = select_from_tables();
             print "Inserting a new item."
         elif input == 'u':
             # Update items.
