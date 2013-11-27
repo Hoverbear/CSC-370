@@ -89,12 +89,12 @@ def print_as_table(schema, results):
   Prints the given Schema and results as a table.
   """
   # Get the Table Descriptors.
-  schemaString = ''.join(["{:>25}|".format(i) for i in schema])
+  schemaString = ''.join(["{:^25}|".format(i) for i in schema])
   print schemaString
   print '-' * len(schemaString)
   # Print out the items.
   for item in results:
-    print ''.join(["{:>25}|".format(i) for i in item])
+    print ''.join(["{:^25}|".format(i) for i in item])
 
 
 
