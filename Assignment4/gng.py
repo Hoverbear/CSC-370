@@ -18,6 +18,7 @@ def select_queries():
     """
     Display a list of queries and select from them.
     """
+    #
     print (
         "== Query Select ==\n"
         "   1 - Balance Sheet\n"
@@ -57,14 +58,29 @@ def select_queries():
     else:
         return None
 
+def select_a_table():
+    """
+    Prints a list of tables to select from.
+    """
+    #
+    print "== Table Select ==\n"
+    cursor.execute("""
+    SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type <> 'VIEW';
+    """)
+    options = []
+    for i, table in enumerate(cursor.fetchall()):
+        options.append(table[0])
+        print "   {} - {}".format(i, table[0])
+    return options[int(raw_input("Select a table to insert into: "))]
+
 # Auxilary Functions
 def select_all(target):
     """
     Selects all from a given table of query, printing them out nicely.
     """
-    
+    #
     cursor.execute("""
-    select * from %s;
+    SELECT * FROM %s;
     """ % (target)) # No risk of injection here.
     return {'schema': [desc[0] for desc in cursor.description], 'data': cursor.fetchall()}
     
@@ -85,6 +101,7 @@ def main(argv=None):
     """
     Do what must be done!
     """
+    #
     global dbconn, cursor
     if argv is None:
         argv = sys.argv
@@ -123,14 +140,19 @@ def main(argv=None):
                 continue
         elif input == 'i':
             # Insert items.
-            item = select_from_tables();
             print "Inserting a new item."
+            table = select_a_table();
+            print table
         elif input == 'u':
             # Update items.
             print "Updating an exiting item."
+            table = select_a_table();
+            print table
         elif input == 'r':
             # Remove items.
             print "Removing an existing item."
+            table = select_a_table();
+            print table
         elif input == 'q':
             # Quit
             print "Quitting."
