@@ -104,15 +104,106 @@ def custom_statement():
   return
 
 def supporter_management():
-  print "TODO: Not implemented yet."
+  print (
+    "Your options are:\n"
+    "   v - View details about a supporter.\n"
+    "   a - Add a supporter.\n"
+    "   m - Modify a supporter.\n"
+    "   d - Delete a supporter.\n"
+    "   b - Go back home."
+  )
+  command = raw_input("Select Functionality: ")
+  # Handle input.
+  if command == 'v':
+    # View details about a supporter.
+    print "=== View details about a supporter. ==="
+    supporter = select_supporter()
+    view_supporter(supporter)
+  elif command == 'a':
+    # Add a supporter.
+    print "=== Add a supporter. ==="
+    set_supporter(None)
+  elif command == 'm':
+    # Modify a supporter.
+    print "=== Modify a supporter. ==="
+    supporter = select_supporter()
+    set_supporter(supporter)
+  elif command == 'd':
+    # Delete a supporter.
+    print "=== Delete a supporter. ==="
+    supporter = select_supporter()
+    delete_supporter(supporter)
+  elif command == 'b':
+    # Do nothing.
   return
 
 def campaign_event_management():
-  print "TODO: Not implemented yet."
+  # TODO: Add events!
+  print (
+    "Your options are:\n"
+    "   v - View details about a campaign.\n"
+    "   a - Add a campaign.\n"
+    "   m - Modify a campaign.\n"
+    "   d - Delete a campaign.\n"
+    "   b - Go back home."
+  )
+  command = raw_input("Select Functionality: ")
+  # Handle input.
+  if command == 'v':
+    # View details about a supporter.
+    print "=== View details about a campaign. ==="
+    campaign = select_campaign()
+    view_campaign(campaign)
+  elif command == 'a':
+    # Add a supporter.
+    print "=== Add a campaign. ==="
+    set_campaign(None)
+  elif command == 'm':
+    # Modify a supporter.
+    print "=== Modify a campaign. ==="
+    campaign = select_campaign()
+    set_campaign(campaign)
+  elif command == 'd':
+    # Delete a supporter.
+    print "=== Delete a campaign. ==="
+    campaign = select_campaign()
+    delete_campaign(campaign)
+  elif command == 'b':
+    # Do nothing.
   return
 
 def account_management():
-  print "TODO: Not implemented yet."
+  print (
+    "Your options are:\n"
+    "   v - View details about a account.\n"
+    "   a - Add an account.\n"
+    "   m - Modify a account.\n"
+    "   d - Delete a account.\n"
+    "   b - Go back home."
+  )
+  command = raw_input("Select Functionality: ")
+  # Handle input.
+  if command == 'v':
+    # View details about a supporter.
+    print "=== View details about a account. ==="
+    account = select_campaign()
+    view_account(account)
+  elif command == 'a':
+    # Add a supporter.
+    print "=== Add a account. ==="
+    set_campaign(None)
+  elif command == 'm':
+    # Modify a supporter.
+    print "=== Modify a account. ==="
+    account = select_account()
+    set_account(account)
+  elif command == 'd':
+    # Delete a supporter.
+    print "=== Delete a account. ==="
+    account = select_account()
+    delete_account(account)
+  elif command == 'b':
+    # Do nothing.
   return
 
 # Main
@@ -136,17 +227,17 @@ def main(argv=None):
   while (True):
     # Top level Prompt.
     print (
-        "Your options are:\n"
-        "   b - Browse Prebuilt Queries.\n"
-        "   s - Supporter Management.\n"
-        "   c - Campaign/Event Management.\n"
-        "   a - Account Management.\n"
-        "   z - Make a custom SQL statement. (Advanced)\n"
-        "   q - Quits the program."
-        )
-    input = raw_input("Select Functionality: ")
+      "Your options are:\n"
+      "   b - Browse Prebuilt Queries.\n"
+      "   s - Supporter Management.\n"
+      "   c - Campaign/Event Management.\n"
+      "   a - Account Management.\n"
+      "   z - Make a custom SQL statement. (Advanced)\n"
+      "   q - Quits the program."
+    )
+    command = raw_input("Select Functionality: ")
     # Handle input.
-    if input == 'b':
+    if command == 'b':
       # Browse Queries.
       print "=== Browse Prebuilt Queries. =="
       query = select_queries();
