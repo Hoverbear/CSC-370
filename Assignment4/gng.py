@@ -20,7 +20,6 @@ def select_queries():
   """
   #
   print (
-    "== Query Select ==\n"
     "   1 - Balance Sheet\n"
     "   2 - Volunteers\n"
     "   3 - Senior Volunteers\n"
@@ -96,19 +95,25 @@ def print_as_table(schema, results):
   for item in results:
     print ''.join(["{:^25}|".format(i) for i in item])
 
-def insert_into_table(table):
-  """
-  Inserts into the given table.
-  """
-  # Build a set of prompts.
-  cursor.execute("""
-  SELECT * FROM %s;
-  """ % table) # The '%' operator MUST be used here. No risk of injection since it's coming internally.
-  print "=== Inserting into table %s ===" % table
-  questions = {}
-  for item in cursor.description:
-    questions[item[0]] = raw_input("Data for %s: " % item[0])
-  print "LOL BUG BELOW!"
+def custom_statement():
+  print "(This is a dangerous action!)"
+  command = raw_input("Enter your custom SQL string: ")
+  cursor.execute(command);
+  for item in cursor.fetchall():
+    print item
+  return
+
+def supporter_management():
+  print "TODO: Not implemented yet."
+  return
+
+def campaign_event_management():
+  print "TODO: Not implemented yet."
+  return
+
+def account_management():
+  print "TODO: Not implemented yet."
+  return
 
 # Main
 def main(argv=None):
@@ -132,46 +137,45 @@ def main(argv=None):
     # Top level Prompt.
     print (
         "Your options are:\n"
-        "   s - Make a custom select statement.\n"
         "   b - Browse Prebuilt Queries.\n"
-        "   i - Insert a new item.\n"
-        "   u - Update an existing item.\n"
-        "   r - Remove an existing item.\n"
+        "   s - Supporter Management.\n"
+        "   c - Campaign/Event Management.\n"
+        "   a - Account Management.\n"
+        "   z - Make a custom SQL statement. (Advanced)\n"
         "   q - Quits the program."
         )
     input = raw_input("Select Functionality: ")
     # Handle input.
-    if input == 's':
-      # Custom select statement.
-      print "TODO: This isn't done yet, sorry!"
-    elif input == 'b':
+    if input == 'b':
       # Browse Queries.
+      print "=== Browse Prebuilt Queries. =="
       query = select_queries();
       if query is not None:
         result = select_all(query)
         print_as_table(result['schema'], result['data'])
       else:
         continue
-    elif input == 'i':
-      # Insert items.
-      print "Inserting a new item."
-      table = select_a_table();
-      message = insert_into_table(table);
-      print message
-    elif input == 'u':
-      # Update items.
-      print "Updating an exiting item."
-      table = select_a_table();
-      print table
-    elif input == 'r':
-      # Remove items.
-      print "Removing an existing item."
-      table = select_a_table();
-      print table
+    elif input == 's':
+      # Supporter Management.
+      print "=== Supporter Management. ==="
+      supporter_management();
+    elif input == 'c':
+      # Campaign/Event Management
+      print "=== Campaign/Event Management. ==="
+      campaign_event_management();
+    elif input == 'a':
+      # Account Management.
+      print "=== Account Management. ==="
+      account_management();
+    elif input == 'z':
+      # Make a custom SQL statement. (Advanced)
+      print "=== Make a custom SQL statement. (Advanced) ==="
+      custom_statement();
     elif input == 'q':
       # Quit
-      print "Quitting."
+      print "=== Quits the program. ==="
       return 0;
+    print "=== Returning to Home.==="
 
 if __name__ == "__main__":
   sys.exit(main())
