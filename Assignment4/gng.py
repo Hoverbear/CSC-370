@@ -14,6 +14,10 @@ import psycopg2 # Postgres
 dbconn = None
 cursor = None
 
+############################################
+# Queries                                  #
+############################################
+
 def select_queries():
   """
   Display a list of queries and select from them.
@@ -72,7 +76,10 @@ def select_a_table():
     print "   {} - {}".format(i, table[0])
   return options[int(raw_input("Select a table to insert into: "))]
 
-# Auxilary Functions
+############################################
+# Auxilary Functions                       #
+############################################
+
 def select_all(target):
   """
   Selects all from a given table of query, printing them out nicely.
@@ -103,6 +110,10 @@ def custom_statement():
     print item
   return
 
+############################################
+# Supporters                               #
+############################################
+
 def supporter_management():
   print (
     "Your options are:\n"
@@ -122,7 +133,7 @@ def supporter_management():
   elif command == 'a':
     # Add a supporter.
     print "=== Add a supporter. ==="
-    set_supporter(None)
+    create_supporter()
   elif command == 'm':
     # Modify a supporter.
     print "=== Modify a supporter. ==="
@@ -133,11 +144,60 @@ def supporter_management():
     print "=== Delete a supporter. ==="
     supporter = select_supporter()
     delete_supporter(supporter)
-  elif command == 'b':
-    # Do nothing.
+  # elif command == 'b':
+  #   Do nothing.
   return
 
-def campaign_event_management():
+def select_supporter():
+  print "Select a supporter:"
+  cursor.execute("""
+  SELECT * FROM supporter;
+  """)
+  for supporter in cursor.fetchall():
+    # Supporter[0] is the supporter's ID.
+    print "   %d - %s" % (supporter[0], supporter[3])
+  command = raw_input("Select your supporter: ")
+  return command
+
+def create_supporter():
+  print "Create a supporter..."
+  the_supporter = {
+    'ID': raw_input("Enter the supporter ID: "),
+    'Name': raw_input("Enter the supporter Name: "),
+    'Email': raw_input("Enter the supporter Email: "),
+    'Phone': raw_input("Enter the supporter Phone Number: "),
+    'Title': raw_input("Enter the supporter Title (Optional): ")
+  }
+  cursor.execute("""
+  INSERT INTO supporter VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s);
+  """, the_supporter)
+  print "=== Inserted supporter. ==="
+  print "Collecting any additional information..."
+  works_with = raw_input("Supporter works with (Optional, Supporter's ID): ")
+  if works_with != '':
+    cursor.execute("""
+    INSERT INTO workswith VALUES (%s, %s);
+    """, (the_supporter["ID"], works_with,))
+    print "=== Inserted workswith. ==="
+
+def view_supporter(supporterID):
+  cursor.execute("""
+  SELECT * FROM supporter WHERE ID = %s
+  """, (supporterID,))
+  supporter = cursor.fetchall()[0];
+  print "   ID:    %s" % supporter[0]
+  print "   Name:  %s" % supporter[3]
+  print "   Email: %s" % supporter[2]
+  print "   Phone: %s" % supporter[1]
+  if supporter[4] != None:
+    print "   Title: %s" % supporter[4]
+
+
+############################################
+# Campaigns                                #
+############################################
+
+def campaign_management():
   # TODO: Add events!
   print (
     "Your options are:\n"
@@ -157,7 +217,7 @@ def campaign_event_management():
   elif command == 'a':
     # Add a supporter.
     print "=== Add a campaign. ==="
-    set_campaign(None)
+    create_campaign()
   elif command == 'm':
     # Modify a supporter.
     print "=== Modify a campaign. ==="
@@ -168,9 +228,52 @@ def campaign_event_management():
     print "=== Delete a campaign. ==="
     campaign = select_campaign()
     delete_campaign(campaign)
-  elif command == 'b':
-    # Do nothing.
+  # elif command == 'b':
+  #   Do nothing.
   return
+
+############################################
+# Event                                    #
+############################################
+
+def event_management():
+  # TODO: Add events!
+  print (
+    "Your options are:\n"
+    "   v - View details about a event.\n"
+    "   a - Add a event.\n"
+    "   m - Modify a event.\n"
+    "   d - Delete a event.\n"
+    "   b - Go back home."
+  )
+  command = raw_input("Select Functionality: ")
+  # Handle input.
+  if command == 'v':
+    # View details about a supporter.
+    print "=== View details about a event. ==="
+    event = select_event()
+    view_event(event)
+  elif command == 'a':
+    # Add a supporter.
+    print "=== Add a event. ==="
+    create_event()
+  elif command == 'm':
+    # Modify a supporter.
+    print "=== Modify a event. ==="
+    event = select_event()
+    set_event(event)
+  elif command == 'd':
+    # Delete a supporter.
+    print "=== Delete a event. ==="
+    event = select_event()
+    delete_event(event)
+  # elif command == 'b':
+  #   Do nothing.
+  return
+
+############################################
+# Account                                  #
+############################################
 
 def account_management():
   print (
@@ -191,7 +294,7 @@ def account_management():
   elif command == 'a':
     # Add a supporter.
     print "=== Add a account. ==="
-    set_campaign(None)
+    create_campaign()
   elif command == 'm':
     # Modify a supporter.
     print "=== Modify a account. ==="
@@ -202,9 +305,13 @@ def account_management():
     print "=== Delete a account. ==="
     account = select_account()
     delete_account(account)
-  elif command == 'b':
-    # Do nothing.
+  # elif command == 'b':
+  #   Do nothing.
   return
+
+############################################
+# Main                                     #
+############################################
 
 # Main
 def main(argv=None):
@@ -230,7 +337,8 @@ def main(argv=None):
       "Your options are:\n"
       "   b - Browse Prebuilt Queries.\n"
       "   s - Supporter Management.\n"
-      "   c - Campaign/Event Management.\n"
+      "   c - Campaign Management.\n"
+      "   e - Event Management.\n"
       "   a - Account Management.\n"
       "   z - Make a custom SQL statement. (Advanced)\n"
       "   q - Quits the program."
@@ -246,23 +354,26 @@ def main(argv=None):
         print_as_table(result['schema'], result['data'])
       else:
         continue
-    elif input == 's':
+    elif command == 's':
       # Supporter Management.
       print "=== Supporter Management. ==="
       supporter_management();
-    elif input == 'c':
-      # Campaign/Event Management
-      print "=== Campaign/Event Management. ==="
-      campaign_event_management();
-    elif input == 'a':
+    elif command == 'c':
+      # Campaign Management
+      print "=== Campaign Management. ==="
+      campaign_management();
+    elif command == 'e':
+      print "=== Event Management ==="
+      event_management();
+    elif command == 'a':
       # Account Management.
       print "=== Account Management. ==="
       account_management();
-    elif input == 'z':
+    elif command == 'z':
       # Make a custom SQL statement. (Advanced)
       print "=== Make a custom SQL statement. (Advanced) ==="
       custom_statement();
-    elif input == 'q':
+    elif command == 'q':
       # Quit
       print "=== Quits the program. ==="
       return 0;
