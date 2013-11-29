@@ -96,7 +96,19 @@ def print_as_table(schema, results):
   for item in results:
     print ''.join(["{:^25}|".format(i) for i in item])
 
-
+def insert_into_table(table):
+  """
+  Inserts into the given table.
+  """
+  # Build a set of prompts.
+  cursor.execute("""
+  SELECT * FROM %s;
+  """ % table) # The '%' operator MUST be used here. No risk of injection since it's coming internally.
+  print "=== Inserting into table %s ===" % table
+  questions = {}
+  for item in cursor.description:
+    questions[item[0]] = raw_input("Data for %s: " % item[0])
+  print "LOL BUG BELOW!"
 
 # Main
 def main(argv=None):
