@@ -173,18 +173,21 @@ def create_supporter():
   """, the_supporter)
   print "=== Inserted supporter. ==="
   print "Collecting any additional information..."
-  works_with = raw_input("Supporter works with (Optional, Supporter's ID): ")
-  if works_with != '':
-    cursor.execute("""
-    INSERT INTO workswith VALUES (%s, %s);
-    """, (the_supporter["ID"], works_with,))
-    print "=== Inserted workswith. ==="
+  if raw_input("Does this supporter have a contact they work with? (y/N): ") == 'y':
+    works_with = raw_input("Supporter works with (Supporter's ID): ")
+    if works_with != '':
+      cursor.execute("""
+      INSERT INTO workswith VALUES (%s, %s);
+      """, (the_supporter["ID"], works_with,))
+      print "=== Inserted workswith. ==="
+  dbconn.commit()
+  print "=== Done creating a supporter. ==="
 
 def view_supporter(supporterID):
   cursor.execute("""
   SELECT * FROM supporter WHERE ID = %s
   """, (supporterID,))
-  supporter = cursor.fetchall()[0];
+  supporter = cursor.fetchall()[0]
   print "   ID:    %s" % supporter[0]
   print "   Name:  %s" % supporter[3]
   print "   Email: %s" % supporter[2]
@@ -192,6 +195,47 @@ def view_supporter(supporterID):
   if supporter[4] != None:
     print "   Title: %s" % supporter[4]
 
+def set_supporter(supporterID):
+  cursor.execute("""
+  SELECT * FROM supporter WHERE ID = %s
+  """, (supporterID,))
+  supporter = cursor.fetchall()[0]
+  supporter_input = {
+    'ID':    raw_input("   ID (%s):    " % supporter[0]) or supporter[0],
+    'Name':  raw_input("   Name (%s):  " % supporter[3]) or supporter[3],
+    'Email': raw_input("   Email (%s): " % supporter[2]) or supporter[2],
+    'Phone': raw_input("   Phone (%s): " % supporter[1]) or supporter[1]
+  }
+  if supporter[4] == None or supporter[4] == '':
+    supporter_input['Title'] = raw_input("   Title: ") or None
+  else:
+    supporter_input['Title'] = raw_input("   Title (%s): " % supporter[4]) or supporter[4]
+  cursor.execute("""
+  INSERT INTO supporter VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s);
+  """, supporter_input)
+  dbconn.commit()
+  print "=== Done modifying the supporter. ==="
+
+def delete_supporter(supporterID):
+  cursor.execute("""
+  SELECT * FROM supporter WHERE ID = %s
+  """, (supporterID,))
+  supporter = cursor.fetchall()[0]
+  print "You're proposing we delete %s from the system? Lets look at their overview:" % supporter[3]
+  print "   ID:    %s" % supporter[0]
+  print "   Name:  %s" % supporter[3]
+  print "   Email: %s" % supporter[2]
+  print "   Phone: %s" % supporter[1]
+  if supporter[4] != None:
+    print "   Title: %s" % supporter[4]
+  if raw_input("Are you sure you want to delete them? (y/N): ") == 'y':
+    cursor.execute("""
+    DELETE FROM supporter WHERE ID = (%s)
+    """, (supporterID,))
+    dbconn.commit()
+    print "=== Deleted %s from the database. ===" % supporter[3]
+  else:
+    print "=== Aborted deletion of %s. ===" % supporter[3]
 
 ############################################
 # Campaigns                                #
