@@ -9,6 +9,7 @@
 import sys
 import getopt
 import psycopg2 # Postgres
+import datetime # Dates
 
 # Global Variables
 dbconn = None
@@ -115,6 +116,9 @@ def custom_statement():
 ############################################
 
 def supporter_management():
+  """
+  Prompts the user to go deeper into supporter management.
+  """
   print (
     "Your options are:\n"
     "   v - View details about a supporter.\n"
@@ -149,6 +153,9 @@ def supporter_management():
   return
 
 def select_supporter():
+  """
+  Selects a supporter by ID
+  """
   print "Select a supporter:"
   cursor.execute("""
   SELECT * FROM supporter;
@@ -160,6 +167,9 @@ def select_supporter():
   return command
 
 def create_supporter():
+  """
+  Creates a supporter.
+  """
   print "Create a supporter..."
   the_supporter = {
     'ID': raw_input("Enter the supporter ID: "),
@@ -184,6 +194,9 @@ def create_supporter():
   print "=== Done creating a supporter. ==="
 
 def view_supporter(supporterID):
+  """
+  Views a supporter.
+  """
   cursor.execute("""
   SELECT * FROM supporter WHERE ID = %s
   """, (supporterID,))
@@ -196,6 +209,9 @@ def view_supporter(supporterID):
     print "   Title: %s" % supporter[4]
 
 def set_supporter(supporterID):
+  """
+  Modifies a supporter and saves it.
+  """
   cursor.execute("""
   SELECT * FROM supporter WHERE ID = %s
   """, (supporterID,))
@@ -217,6 +233,9 @@ def set_supporter(supporterID):
   print "=== Done modifying the supporter. ==="
 
 def delete_supporter(supporterID):
+  """
+  Deletes a supporter
+  """
   cursor.execute("""
   SELECT * FROM supporter WHERE ID = %s
   """, (supporterID,))
@@ -238,11 +257,13 @@ def delete_supporter(supporterID):
     print "=== Aborted deletion of %s. ===" % supporter[3]
 
 ############################################
-# Campaigns                                #
+# Campaigns                               #
 ############################################
 
 def campaign_management():
-  # TODO: Add events!
+  """
+  Prompts the user to go deeper into campaign management.
+  """
   print (
     "Your options are:\n"
     "   v - View details about a campaign.\n"
@@ -254,27 +275,163 @@ def campaign_management():
   command = raw_input("Select Functionality: ")
   # Handle input.
   if command == 'v':
-    # View details about a supporter.
+    # View details about a campaign.
     print "=== View details about a campaign. ==="
     campaign = select_campaign()
     view_campaign(campaign)
   elif command == 'a':
-    # Add a supporter.
+    # Add a campaign.
     print "=== Add a campaign. ==="
     create_campaign()
   elif command == 'm':
-    # Modify a supporter.
+    # Modify a campaign.
     print "=== Modify a campaign. ==="
     campaign = select_campaign()
     set_campaign(campaign)
   elif command == 'd':
-    # Delete a supporter.
+    # Delete a campaign.
     print "=== Delete a campaign. ==="
     campaign = select_campaign()
     delete_campaign(campaign)
   # elif command == 'b':
   #   Do nothing.
   return
+
+def select_campaign():
+  """
+  Selects a campaign by ID
+  """
+  print "Select a campaign:"
+  cursor.execute("""
+  SELECT * FROM campaign;
+  """)
+  choices = []
+  for i, campaign in enumerate(cursor.fetchall()):
+    choices.append(campaign[0])
+    # campaign[0] is the campaign's ID.
+    print "   %d - %s: %s" % (i, campaign[0], campaign[1])
+  command = int(raw_input("Select your campaign: "))
+  return choices[command]
+
+def create_campaign():
+  """
+  Creates a campaign.
+  """
+  print "Create a campaign..."
+  the_campaign = {
+    'Title': raw_input("Enter the campaign title: "),
+    'Slogan': raw_input("Enter the campaign slogan: "),
+    'PhaseNumber': 1
+  }
+  cursor.execute("""
+  INSERT INTO campaign VALUES (%(Title)s, %(Slogan)s);
+  """, the_campaign)
+  print "=== Inserted campaign. ==="
+  print "Collecting any additional information..."
+  phases = []
+  for i in range(int(raw_input("How many phases is this campaign? (1): ")) or 0):
+    print "Info for Phase %d:" % (i + 1)
+    phases.append({
+      'PhaseNumber':    i + 1,
+      'CampaignTitle':  the_campaign['Title'],
+      'Goal':           raw_input("  What is this phases goal?: "),
+    })
+    print " Start time: "
+    phases[i]['StartTime'] = datetime.date(
+      int(raw_input("    Year: ")),
+      int(raw_input("    Month: ")),
+      int(raw_input("    Day: "))
+    )
+    print " End time: "
+    phases[i]['EndTime'] = datetime.date(
+      int(raw_input("    Year: ")),
+      int(raw_input("    Month: ")),
+      int(raw_input("    Day: "))
+    )
+    cursor.execute("""
+    INSERT INTO phase VALUES (%(PhaseNumber)s, %(CampaignTitle)s, %(Goal)s, %(StartTime)s, %(EndTime)s);
+    """, phases[i])
+  dbconn.commit()
+  print "=== Done creating a campaign. ==="
+
+def view_campaign(campaignID):
+  """
+  Views a campaign.
+  """
+  cursor.execute("""
+  SELECT * FROM campaign WHERE Title = %s
+  """, (campaignID,))
+  campaign = cursor.fetchall()[0]
+  print "   Title:   %s" % campaign[0]
+  print "   Slogan:  %s" % campaign[1]
+  print "   Current Phase:   %s" % campaign[2]
+  # Phases
+  cursor.execute("""
+  SELECT * FROM phase WHERE CampaignTitle = %s
+  """, (campaignID,))
+  for phase in cursor.fetchall():
+    print "   PhaseNumber: %d" % phase[0]
+    print "     Goal:        %s" % phase[2]
+    print "     StartTime:   %s" % phase[3]
+    print "     EndTime:     %s" % phase[4]
+
+def set_campaign(campaignID):
+  """
+  Modifies a campaign and saves it.
+  """
+  cursor.execute("""
+  SELECT * FROM campaign WHERE Title = %s
+  """, (campaignID,))
+  campaign = cursor.fetchall()[0]
+  campaign_input = {
+    'ID':    raw_input("   ID (%s):    " % campaign[0]) or campaign[0],
+    'Name':  raw_input("   Name (%s):  " % campaign[3]) or campaign[3],
+    'Email': raw_input("   Email (%s): " % campaign[2]) or campaign[2],
+    'Phone': raw_input("   Phone (%s): " % campaign[1]) or campaign[1]
+  }
+  if campaign[4] == None or campaign[4] == '':
+    campaign_input['Title'] = raw_input("   Title: ") or None
+  else:
+    campaign_input['Title'] = raw_input("   Title (%s): " % campaign[4]) or campaign[4]
+  cursor.execute("""
+  INSERT INTO campaign VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s);
+  """, campaign_input)
+  dbconn.commit()
+  print "=== Done modifying the campaign. ==="
+
+def delete_campaign(campaignID):
+  """
+  Deletes a campaign
+  """
+  cursor.execute("""
+  SELECT * FROM campaign WHERE Title = %s;
+  """, (campaignID,))
+  campaign = cursor.fetchall()[0]
+  print "You're proposing we delete the campaign '%s' from the system? Lets look at it's overview:" % campaign[0]
+  print "   Title:   %s" % campaign[0]
+  print "   Slogan:  %s" % campaign[1]
+  print "   Current Phase:   %s" % campaign[2]
+  # Print Phases
+  cursor.execute("""
+  SELECT * FROM phase WHERE campaignTitle = %s;
+  """, (campaign[0],))
+  for phase in cursor.fetchall():
+    print "   PhaseNumber: %d" % phase[0]
+    print "     Goal:        %s" % phase[2]
+    print "     StartTime:   %s" % phase[3]
+    print "     EndTime:     %s" % phase[4]
+  if raw_input("Are you sure you want to delete them? (y/N): ") == 'y':
+    # Also get the phases.
+    cursor.execute("""
+    DELETE FROM phase WHERE CampaignTitle = (%s);
+    """, (campaignID,))
+    cursor.execute("""
+    DELETE FROM campaign WHERE Title = (%s);
+    """, (campaignID,))
+    dbconn.commit()
+    print "=== Deleted %s from the database. ===" % campaign[0]
+  else:
+    print "=== Aborted deletion of %s. ===" % campaign[0]
 
 ############################################
 # Event                                    #
