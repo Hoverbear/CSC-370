@@ -201,12 +201,12 @@ def view_supporter(supporterID):
   SELECT * FROM supporter WHERE ID = %s
   """, (supporterID,))
   supporter = cursor.fetchall()[0]
-  print "   ID:    %s" % supporter[0]
-  print "   Name:  %s" % supporter[3]
-  print "   Email: %s" % supporter[2]
-  print "   Phone: %s" % supporter[1]
+  print "ID:    %s" % supporter[0]
+  print "Name:  %s" % supporter[3]
+  print "Email: %s" % supporter[2]
+  print "Phone: %s" % supporter[1]
   if supporter[4] != None:
-    print "   Title: %s" % supporter[4]
+    print "Title: %s" % supporter[4]
 
 def set_supporter(supporterID):
   """
@@ -217,15 +217,15 @@ def set_supporter(supporterID):
   """, (supporterID,))
   supporter = cursor.fetchall()[0]
   supporter_input = {
-    'ID':    raw_input("   ID (%s):    " % supporter[0]) or supporter[0],
-    'Name':  raw_input("   Name (%s):  " % supporter[3]) or supporter[3],
-    'Email': raw_input("   Email (%s): " % supporter[2]) or supporter[2],
-    'Phone': raw_input("   Phone (%s): " % supporter[1]) or supporter[1]
+    'ID':    raw_input("ID (%s):    " % supporter[0]) or supporter[0],
+    'Name':  raw_input("Name (%s):  " % supporter[3]) or supporter[3],
+    'Email': raw_input("Email (%s): " % supporter[2]) or supporter[2],
+    'Phone': raw_input("Phone (%s): " % supporter[1]) or supporter[1]
   }
   if supporter[4] == None or supporter[4] == '':
-    supporter_input['Title'] = raw_input("   Title: ") or None
+    supporter_input['Title'] = raw_input("Title: ") or None
   else:
-    supporter_input['Title'] = raw_input("   Title (%s): " % supporter[4]) or supporter[4]
+    supporter_input['Title'] = raw_input("Title (%s): " % supporter[4]) or supporter[4]
   cursor.execute("""
   UPDATE supporter SET ID = %(ID)s, Phone = %(Phone)s, Email = %(Email)s, Name = %(Name)s, Title = %(Title)s WHERE
   ID = %(ID)s;
@@ -337,17 +337,17 @@ def create_campaign():
       'CampaignTitle':  the_campaign['Title'],
       'Goal':           raw_input("  What is this phases goal?: "),
     })
-    print " Start time: "
+    print "Start time: "
     phases[i]['StartTime'] = datetime.date(
-      int(raw_input("    Year: ")),
-      int(raw_input("    Month: ")),
-      int(raw_input("    Day: "))
+      int(raw_input("  Year: ")),
+      int(raw_input("  Month: ")),
+      int(raw_input("  Day: "))
     )
-    print " End time: "
+    print "End time: "
     phases[i]['EndTime'] = datetime.date(
-      int(raw_input("    Year: ")),
-      int(raw_input("    Month: ")),
-      int(raw_input("    Day: "))
+      int(raw_input("  Year: ")),
+      int(raw_input("  Month: ")),
+      int(raw_input("  Day: "))
     )
     cursor.execute("""
     INSERT INTO phase VALUES (%(PhaseNumber)s, %(CampaignTitle)s, %(Goal)s, %(StartTime)s, %(EndTime)s);
@@ -391,9 +391,9 @@ def set_campaign(campaignID):
   campaign = cursor.fetchall()[0]
   campaign_input = {
     'OldTitle': campaign[0],
-    'Title':    raw_input("   Title  (%s):   " % campaign[0]) or campaign[0],
-    'Slogan':  raw_input("   Slogan (%s):   " % campaign[1]) or campaign[1],
-    'CurrentPhase': int(raw_input("    CurrentPhase (%d):  " % campaign[2]) or campaign[2])
+    'Title':    raw_input("  Title  (%s): " % campaign[0]) or campaign[0],
+    'Slogan':   raw_input("  Slogan (%s): " % campaign[1]) or campaign[1],
+    'CurrentPhase': int(raw_input("  CurrentPhase (%d):  " % campaign[2]) or campaign[2])
   }
   # Modification
   cursor.execute("""
@@ -414,15 +414,15 @@ def set_campaign(campaignID):
     new_phase['Goal']      = raw_input("   Goal (%s): " % phase[2])
     print " Start time: "
     new_phase['StartTime'] = datetime.date(
-      int(raw_input("    Year (%s): " % phase[3].year) or phase[3].year),
-      int(raw_input("    Month (%s): " % phase[3].month) or phase[3].month),
-      int(raw_input("    Day (%s): " % phase[3].day) or phase[3].day)
+      int(raw_input("  Year (%s): " % phase[3].year) or phase[3].year),
+      int(raw_input("  Month (%s): " % phase[3].month) or phase[3].month),
+      int(raw_input("  Day (%s): " % phase[3].day) or phase[3].day)
     )
     print " End time: "
     new_phase['EndTime'] = datetime.date(
-      int(raw_input("    Year (%s): " % phase[4].year) or phase[4].year),
-      int(raw_input("    Month (%s): " % phase[4].month) or phase[4].month),
-      int(raw_input("    Day (%s): " % phase[4].day) or phase[4].day)
+      int(raw_input("  Year (%s): " % phase[4].year) or phase[4].year),
+      int(raw_input("  Month (%s): " % phase[4].month) or phase[4].month),
+      int(raw_input("  Day (%s): " % phase[4].day) or phase[4].day)
     )
     cursor.execute("""
     UPDATE phase SET CampaignTitle = %(CampaignTitle)s, Goal = %(Goal)s, StartTimestamp = %(StartTime)s, EndTimeStamp = %(EndTime)s WHERE
@@ -470,7 +470,9 @@ def delete_campaign(campaignID):
 ############################################
 
 def event_management():
-  # TODO: Add events!
+  """
+  Prompts the user to go deeper into event management.
+  """
   print (
     "Your options are:\n"
     "   v - View details about a event.\n"
@@ -482,27 +484,188 @@ def event_management():
   command = raw_input("Select Functionality: ")
   # Handle input.
   if command == 'v':
-    # View details about a supporter.
+    # View details about a event.
     print "=== View details about a event. ==="
     event = select_event()
     view_event(event)
   elif command == 'a':
-    # Add a supporter.
+    # Add a event.
     print "=== Add a event. ==="
     create_event()
   elif command == 'm':
-    # Modify a supporter.
+    # Modify a event.
     print "=== Modify a event. ==="
     event = select_event()
     set_event(event)
   elif command == 'd':
-    # Delete a supporter.
+    # Delete a event.
     print "=== Delete a event. ==="
     event = select_event()
     delete_event(event)
   # elif command == 'b':
   #   Do nothing.
   return
+
+def select_event():
+  """
+  Selects a event by ID
+  """
+  print "Select a event:"
+  cursor.execute("""
+  SELECT * FROM event;
+  """)
+  for event in cursor.fetchall():
+    # event[0] is the event's ID.
+    print "   %d - %s (%s)" % (event[0], event[1], event[2])
+  command = raw_input("Select your event: ")
+  return command
+
+def create_event():
+  """
+  Creates a event.
+  """
+  print "Create a event..."
+  the_event = {
+    'ID': raw_input("Enter the event ID: "),
+    'Name': raw_input("Enter the event Name: "),
+    'Location': raw_input("Enter the event Location: ")
+  }
+  # Datetimes
+  print "Start Time:"
+  the_event['StartTime'] = datetime.datetime(
+    int(raw_input("  Year: ")),
+    int(raw_input("  Month: ")),
+    int(raw_input("  Day: ")),
+    int(raw_input("  Hour: ")),
+    int(raw_input("  Minute: ")),
+  )
+  print "End Time:"
+  the_event['EndTime'] = datetime.datetime(
+    int(raw_input("  Year: ")),
+    int(raw_input("  Month: ")),
+    int(raw_input("  Day: ")),
+    int(raw_input("  Hour: ")),
+    int(raw_input("  Minute: ")),
+  )
+  
+  cursor.execute("""
+  INSERT INTO event VALUES (%(ID)s, %(Name)s, %(Location)s, %(StartTime)s, %(EndTime)s);
+  """, the_event)
+  print "=== Inserted event. ==="
+  if raw_input("Is this event associated with a campaign/phase? (y/N)? ") == 'y':
+    partof = {
+      'EventID': the_event['ID'],
+      'Title': select_campaign(),
+      'PhaseNumber': raw_input("Which phase of this campaign? (1)") or 1
+    }
+  dbconn.commit()
+  print "=== Done creating a event. ==="
+
+def view_event(eventID):
+  """
+  Views a event.
+  """
+  cursor.execute("""
+  SELECT * FROM event WHERE ID = %s
+  """, (eventID,))
+  event = cursor.fetchall()[0]
+  print "ID:        %s" % event[0]
+  print "Name:      %s" % event[1]
+  print "Location:  %s" % event[2]
+  print "StartTime: %s" % event[3]
+  print "EndTime:   %s" % event[4]
+  cursor.execute("""
+  SELECT * FROM PartOf WHERE EventID = %s;
+  """, (event[0],))
+  parts = cursor.fetchall()
+  if len(parts) >= 1:
+    for part in parts:
+      print "Part of event %s, phase %d" % (part[1], part[2])
+
+def set_event(eventID):
+  """
+  Modifies a event and saves it.
+  """
+  cursor.execute("""
+  SELECT * FROM event WHERE ID = %s
+  """, (eventID,))
+  event = cursor.fetchall()[0]
+  event_input = {
+    'ID':    raw_input("ID (%s):    " % event[0]) or event[0],
+    'Name':  raw_input("Name (%s):  " % event[1]) or event[1],
+    'Location': raw_input("Location (%s): " % event[2]) or event[2]
+  }
+  # Datetimes
+  print " Start time: "
+  event_input['StartTime'] = datetime.datetime(
+    int(raw_input("  Year (%s): " % event[3].year) or event[3].year),
+    int(raw_input("  Month (%s): " % event[3].month) or event[3].month),
+    int(raw_input("  Day (%s): " % event[3].day) or event[3].day),
+    int(raw_input("  Hour (%s): " % event[3].hour) or event[3].hour),
+    int(raw_input("  Minute (%s): " % event[3].minute) or event[3].minute)
+  )
+  print " End time: "
+  event_input['EndTime'] = datetime.datetime(
+    int(raw_input("  Year (%s): " % event[4].year) or event[4].year),
+    int(raw_input("  Month (%s): " % event[4].month) or event[4].month),
+    int(raw_input("  Day (%s): " % event[4].day) or event[4].day),
+    int(raw_input("  Hour (%s): " % event[4].hour) or event[4].hour),
+    int(raw_input("  Minute (%s): " % event[4].minute) or event[4].minute)
+  )
+  #
+  cursor.execute("""
+  UPDATE event SET ID = %(ID)s, Name = %(Name)s, Location = %(Location)s, StartTimeStamp = %(StartTime)s, EndTimeStamp = %(EndTime)s WHERE
+  ID = %(ID)s;
+  """, event_input)
+  # Check partof
+  cursor.execute("""
+  SELECT * FROM partof WHERE eventID = %s
+  """, (eventID,))
+  parts = cursor.fetchall()
+  if parts:
+    for part in parts:
+      choice = raw_input("This event is currently part of %s, phase %d... Modify it (m)? or Delete it (d)? or do nothing (Enter nothing): " % (part[1], part[2]))
+      if choice == 'd':
+        cursor.execute("""
+        DELETE FROM partof WHERE eventID = (%s) AND Title = (%s) AND phaseNumber = (%s);
+        """, (part[0], part[1], part[2],))
+      elif choice == 'm':
+        new_campaign = select_campaign()
+        new_phase = raw_input("New Phase Number: ")
+        cursor.execute("""
+        UPDATE partof SET title = (%s), PhaseNumber = (%s) WHERE
+        eventID = %s AND title = %s AND phaseNumber = %s;
+        """, (new_campaign, new_phase, part[0], part[1], part[2],))
+  elif raw_input("Add this event to a campaign? (y/N): ") == 'y':
+    cursor.execute("""
+    INSERT INTO partof VALUES (%s, %s, %s);
+    """, (event[0], select_campaign(), int(raw_input("Which phase?: "))))
+  dbconn.commit()
+  print "=== Done modifying the event. ==="
+
+def delete_event(eventID):
+  """
+  Deletes a event
+  """
+  cursor.execute("""
+  SELECT * FROM event WHERE ID = %s
+  """, (eventID,))
+  event = cursor.fetchall()[0]
+  print "You're proposing we delete %s from the system? Lets look at their overview:" % event[3]
+  print "   ID:    %s" % event[0]
+  print "   Name:  %s" % event[3]
+  print "   Email: %s" % event[2]
+  print "   Phone: %s" % event[1]
+  if event[4] != None:
+    print "   Title: %s" % event[4]
+  if raw_input("Are you sure you want to delete them? (y/N): ") == 'y':
+    cursor.execute("""
+    DELETE FROM event WHERE ID = (%s)
+    """, (eventID,))
+    dbconn.commit()
+    print "=== Deleted %s from the database. ===" % event[3]
+  else:
+    print "=== Aborted deletion of %s. ===" % event[3]
 
 ############################################
 # Account                                  #

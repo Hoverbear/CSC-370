@@ -18,7 +18,7 @@ create table Campaign (
 
 create table Phase (
   PhaseNumber     int,
-  CampaignTitle   varchar(40) references Campaign(Title),
+  CampaignTitle   varchar(40) references Campaign(Title) ON UPDATE CASCADE,
   Goal            varchar(80),
   StartTimestamp  timestamp with time zone,                          -- Like 'January 8 04:05:06 1999 PST'
   EndTimestamp    timestamp with time zone,
