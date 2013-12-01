@@ -828,12 +828,12 @@ def account_management():
   if command == 'v':
     # View details about a supporter.
     print "=== View details about a account. ==="
-    account = select_campaign()
+    account = select_account()
     view_account(account)
   elif command == 'a':
     # Add a supporter.
     print "=== Add a account. ==="
-    create_campaign()
+    create_account()
   elif command == 'm':
     # Modify a supporter.
     print "=== Modify a account. ==="
@@ -847,6 +847,69 @@ def account_management():
   # elif command == 'b':
   #   Do nothing.
   return
+
+def select_account():
+  """
+  Selects an account by ID.
+  """
+  # Get the balance sheet, since it's a good representation of the accounts.
+  cursor.execute("""
+  SELECT * FROM one;
+  """)
+  for item in cursor.fetchall():
+    print "  %d - %s (Balance: %d)" % (item[0], item[1], item[4])
+  return raw_input("Choose an account by ID: ")
+
+def view_account(accountID):
+  """
+  View an account's deets.
+  """
+  cursor.execute("""
+  SELECT * FROM account
+  WHERE ID = %s;
+  """, (accountID,))
+  for account in cursor.fetchall():
+    print "  ID:         %s" % account[0]
+    print "  Purpose:    %s" % account[1]
+    print "  Bank:       %s" % account[2]
+    print "  Annotation: %s" % account[3]
+
+def create_account():
+  """
+  Creates an account.
+  """
+  the_account = {
+    'ID': int(raw_input("Select an ID: ")),
+    'Purpose': raw_input("What is the accounts purpose?: "),
+    'Bank': raw_input("Which bank is this account with?: "),
+    'Annotation': raw_input("Annotation for account: ")
+  }
+  # Insert account.
+  cursor.execute("""
+  INSERT INTO account VALUES (%(ID)s, %(Purpose)s, %(Bank)s, %(Annotation)s)
+  """, the_account)
+  # Additional data.
+  if raw_input("Is this a funding steam for any particular campaign? (y/N): ") == 'y':
+    # It's a funding stream.
+    print "For which campaign?"
+    choice = select_campaign()
+    if choice:
+      cursor.execute("""
+      INSERT INTO fundingStream VALUES (%s, %s);
+      """, (account['ID'], choice,))
+      print "=== Now a funding stream. ==="
+  if raw_input("Do any supporters have access to this account? (y/N): ") == 'y':
+    # Someone has access.
+    print "Which person has access?"
+    choice = select_supporter()
+    if choice:
+      cursor.execute("""
+      INSERT INTO access VALUES (%s, %s);
+      """, (the_account['ID'], choice,))
+      print "=== Access granted. ==="
+  dbconn.commit()
+      
+
 
 ############################################
 # Main                                     #
