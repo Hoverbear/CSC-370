@@ -37,8 +37,8 @@ create table Event (
 );
 
 create table PartOf (
-  EventID         int         references Event(ID),
-  Title           varchar(60) references Campaign(Title),
+  EventID         int         references Event(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  Title           varchar(60) references Campaign(Title) ON DELETE CASCADE ON UPDATE CASCADE,
   PhaseNumber     int,
   primary key(EventID, Title, PhaseNumber)
 );
@@ -52,14 +52,14 @@ create table Account (
 );
 
 create table FundingStream (
-  AccountID       int         references Account(ID),
-  Title           varchar(60) references Campaign(Title),
+  AccountID       int         references Account(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  Title           varchar(60) references Campaign(Title) ON DELETE CASCADE ON UPDATE CASCADE,
   primary key(AccountID, Title)
 );
 
 create table Payment (
   ID              int,
-  AccountID       int         references Account(ID),
+  AccountID       int         references Account(ID) ON DELETE CASCADE ON UPDATE CASCADE,
   Amount          int,
   DateTime        timestamp with time zone,
   Description     varchar(120),
@@ -77,44 +77,44 @@ create table Supporter(
 );
 
 create table ExpenseDonation (
-  PaymentID       int references Payment(ID),
-  CampaignTitle   varchar(40) references Campaign(Title),
+  PaymentID       int references Payment(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  CampaignTitle   varchar(40) references Campaign(Title) ON DELETE CASCADE ON UPDATE CASCADE,
   primary key(PaymentID, CampaignTitle)
 );
 
 create table ReimbursementDonation (
-  PaymentID       int references Payment(ID),
-  SupporterID     int references Supporter(ID),
+  PaymentID       int references Payment(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  SupporterID     int references Supporter(ID) ON DELETE CASCADE ON UPDATE CASCADE,
   primary key(PaymentID, SupporterID)
 );
 
 create table Employee (
-  ID              int references Supporter(ID),
+  ID              int references Supporter(ID) ON DELETE CASCADE ON UPDATE CASCADE,
   Salary          int,
   primary key(ID, Salary)
 );
 
 create table Access (
-  AccountID       int references Account(ID),
-  SupporterID     int references Supporter(ID),
+  AccountID       int references Account(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  SupporterID     int references Supporter(ID) ON DELETE CASCADE ON UPDATE CASCADE,
   primary key(AccountID, SupporterID)
 );
 
 create table WorksWith (
-  Supporter1      int references Supporter(ID),
-  Supporter2      int references Supporter(ID),
+  Supporter1      int references Supporter(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  Supporter2      int references Supporter(ID) ON DELETE CASCADE ON UPDATE CASCADE,
   primary key(Supporter1, Supporter2)
 );
 
 create table ParticipatedIn (
-  SupporterID     int references Supporter(ID),
-  EventID         int references Event(ID),
+  SupporterID     int references Supporter(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  EventID         int references Event(ID) ON DELETE CASCADE ON UPDATE CASCADE,
   primary key(SupporterID, EventID)
 );
 
 create table Organizes (
-  SupporterID     int references Supporter(ID),
-  CampaignTitle   varchar(40) references Campaign(Title),
+  SupporterID     int references Supporter(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  CampaignTitle   varchar(40) references Campaign(Title) ON DELETE CASCADE ON UPDATE CASCADE,
   primary key(SupporterID, CampaignTitle)
 );
 

@@ -210,6 +210,15 @@ def view_supporter(supporterID):
     print "Title: %s" % supporter[4]
   if supporter[5] != None:
     print "Annotation: %s" % supporter[5]
+  # WorksWith
+  print "Working relationships:"
+  cursor.execute("""
+  SELECT * FROM workswith
+  INNER JOIN supporter ON (WorksWith.Supporter2 = Supporter.ID)
+  WHERE WorksWith.Supporter1 = (%s);
+  """, (supporter[0],))
+  for item in cursor.fetchall():
+    print "  %s works with %s" % (supporter[3], item[5])
 
 def set_supporter(supporterID):
   """
@@ -240,6 +249,28 @@ def set_supporter(supporterID):
   UPDATE supporter SET ID = %(ID)s, Phone = %(Phone)s, Email = %(Email)s, Name = %(Name)s, Title = %(Title)s, Annotation = %(Annotation)s WHERE
   ID = %(ID)s;
   """, supporter_input)
+  # WorksWith
+  cursor.execute("""
+    SELECT * FROM workswith
+    INNER JOIN supporter ON (WorksWith.Supporter2 = Supporter.ID)
+    WHERE WorksWith.Supporter1 = (%s);
+    """, (supporter[0],))
+  for item in cursor.fetchall():
+    print item
+    choice = raw_input("%s works with %s, delete (d)? Or leave it (Nothing): " % (supporter[3], item[5])
+)
+    if choice == 'd':
+      cursor.execute("""
+      DELETE FROM workswith WHERE supporter1 = (%s) AND supporter2 = (%s)
+      """, (supporter[0], item[1],))
+  while True:
+    if raw_input("Add new relationship? (y/N): ") == 'y':
+      cursor.execute("""
+      INSERT INTO workswith VALUES (%s, %s);
+      """, (supporter[0], select_supporter(),))
+    else:
+      break
+  #
   dbconn.commit()
   print "=== Done modifying the supporter. ==="
 

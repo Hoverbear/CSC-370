@@ -1,6 +1,6 @@
-1. Added "ON UPDATE CASCADE" to Phase.CampaignTitle.
-2. Added "annotation" on Campaign.
-3. Added "annotation" on Event.
-4. Added "annotation" on Account.
-5. Added "annotation" on Supporter.
-
+Added "ON UPDATE CASCADE" to Phase.CampaignTitle.
+Added "ON UPDATE CASCADE ON DELETE CASCADE" to PartOf, FundingStream, Payment, ExpenseDonation, ReimbursementDonation, Employee, Acces, WorksWith, ParticipatedIn, Organizes.
+Added "annotation" on Campaign.
+Added "annotation" on Event.
+Added "annotation" on Account.
+Added "annotation" on Supporter.
