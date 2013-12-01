@@ -651,21 +651,28 @@ def delete_event(eventID):
   SELECT * FROM event WHERE ID = %s
   """, (eventID,))
   event = cursor.fetchall()[0]
-  print "You're proposing we delete %s from the system? Lets look at their overview:" % event[3]
-  print "   ID:    %s" % event[0]
-  print "   Name:  %s" % event[3]
-  print "   Email: %s" % event[2]
-  print "   Phone: %s" % event[1]
-  if event[4] != None:
-    print "   Title: %s" % event[4]
-  if raw_input("Are you sure you want to delete them? (y/N): ") == 'y':
+  print "You're proposing we delete %s from the system? Lets look at it's overview:" % event[1]
+  print "ID:        %s" % event[0]
+  print "Name:      %s" % event[1]
+  print "Location:  %s" % event[2]
+  print "StartTime: %s" % event[3]
+  print "EndTime:   %s" % event[4]
+  cursor.execute("""
+  SELECT * FROM partof WHERE eventID = (%s);
+  """, (event[0],))
+  for item in cursor.fetchall():
+    print "This even is part of %s, phase %d" % (item[1], item[2])
+  if raw_input("Are you sure you want to delete it? (y/N): ") == 'y':
+    cursor.execute("""
+    DELETE FROM partof WHERE EventID = (%s);
+    """, (event[0],))
     cursor.execute("""
     DELETE FROM event WHERE ID = (%s)
     """, (eventID,))
     dbconn.commit()
-    print "=== Deleted %s from the database. ===" % event[3]
+    print "=== Deleted %s from the database. ===" % event[1]
   else:
-    print "=== Aborted deletion of %s. ===" % event[3]
+    print "=== Aborted deletion of %s. ===" % event[1]
 
 ############################################
 # Account                                  #
