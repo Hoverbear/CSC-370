@@ -180,16 +180,16 @@ def create_supporter():
     'Annotation': raw_input("Annotation: ")
   }
   cursor.execute("""
-  INSERT INTO supporter VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s), %(Annotation)s;
+  INSERT INTO supporter VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s, %(Annotation)s);
   """, the_supporter)
   print "=== Inserted supporter. ==="
   print "Collecting any additional information..."
   if raw_input("Does this supporter have a contact they work with? (y/N): ") == 'y':
-    works_with = raw_input("Supporter works with (Supporter's ID): ")
+    works_with = select_supporter()
     if works_with != '':
       cursor.execute("""
-      INSERT INTO workswith VALUES (%s, %s);
-      """, (the_supporter["ID"], works_with,))
+      INSERT INTO workswith VALUES (%s, %s), (%s, %s);
+      """, (works_with, the_supporter["ID"], the_supporter["ID"], works_with,))
       print "=== Inserted workswith. ==="
   dbconn.commit()
   print "=== Done creating a supporter. ==="
@@ -292,6 +292,9 @@ def delete_supporter(supporterID):
   if supporter[5] != None:
     print "   Annotation: %s" % supporter[5]
   if raw_input("Are you sure you want to delete them? (y/N): ") == 'y':
+    cursor.execute("""
+    DELETE FROM workswith WHERE supporter1 = (%s)
+    """, (supporter[0],))
     cursor.execute("""
     DELETE FROM supporter WHERE ID = (%s)
     """, (supporterID,))
