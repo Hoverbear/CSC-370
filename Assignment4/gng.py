@@ -227,7 +227,8 @@ def set_supporter(supporterID):
   else:
     supporter_input['Title'] = raw_input("   Title (%s): " % supporter[4]) or supporter[4]
   cursor.execute("""
-  INSERT INTO supporter VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s);
+  UPDATE supporter SET ID = %(ID)s, Phone = %(Phone)s, Email = %(Email)s, Name = %(Name)s, Title = %(Title)s WHERE
+  ID = %(ID)s;
   """, supporter_input)
   dbconn.commit()
   print "=== Done modifying the supporter. ==="
@@ -359,7 +360,7 @@ def view_campaign(campaignID):
   Views a campaign.
   """
   cursor.execute("""
-  SELECT * FROM campaign WHERE Title = %s
+  SELECT * FROM campaign WHERE Title = %s;
   """, (campaignID,))
   campaign = cursor.fetchall()[0]
   print "   Title:   %s" % campaign[0]
@@ -367,7 +368,7 @@ def view_campaign(campaignID):
   print "   Current Phase:   %s" % campaign[2]
   # Phases
   cursor.execute("""
-  SELECT * FROM phase WHERE CampaignTitle = %s
+  SELECT * FROM phase WHERE CampaignTitle = %s;
   """, (campaignID,))
   for phase in cursor.fetchall():
     print "   PhaseNumber: %d" % phase[0]
@@ -379,23 +380,54 @@ def set_campaign(campaignID):
   """
   Modifies a campaign and saves it.
   """
+  # Need to disable constraints.
+  cursor.execute("""
+  SET CONSTRAINTS ALL DEFERRED 
+  """)
+  #
   cursor.execute("""
   SELECT * FROM campaign WHERE Title = %s
   """, (campaignID,))
   campaign = cursor.fetchall()[0]
   campaign_input = {
-    'ID':    raw_input("   ID (%s):    " % campaign[0]) or campaign[0],
-    'Name':  raw_input("   Name (%s):  " % campaign[3]) or campaign[3],
-    'Email': raw_input("   Email (%s): " % campaign[2]) or campaign[2],
-    'Phone': raw_input("   Phone (%s): " % campaign[1]) or campaign[1]
+    'OldTitle': campaign[0],
+    'Title':    raw_input("   Title  (%s):   " % campaign[0]) or campaign[0],
+    'Slogan':  raw_input("   Slogan (%s):   " % campaign[1]) or campaign[1],
+    'CurrentPhase': int(raw_input("    CurrentPhase (%d):  " % campaign[2]) or campaign[2])
   }
-  if campaign[4] == None or campaign[4] == '':
-    campaign_input['Title'] = raw_input("   Title: ") or None
-  else:
-    campaign_input['Title'] = raw_input("   Title (%s): " % campaign[4]) or campaign[4]
+  # Modification
   cursor.execute("""
-  INSERT INTO campaign VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s);
+  UPDATE campaign SET Title = %(Title)s, Slogan = %(Slogan)s, CurrentPhase = %(CurrentPhase)s WHERE
+  Title = %(OldTitle)s;
   """, campaign_input)
+  # Phases
+  print "Modifying Phases: "
+  cursor.execute("""
+  SELECT * FROM phase WHERE CampaignTitle = %(Title)s;
+  """, campaign_input)
+  for phase in cursor.fetchall():
+    print "   Phase %d" % phase[0]
+    new_phase = {
+        'PhaseNumber': phase[0],
+        'CampaignTitle': campaign_input['Title'],
+    }
+    new_phase['Goal']      = raw_input("   Goal (%s): " % phase[2])
+    print " Start time: "
+    new_phase['StartTime'] = datetime.date(
+      int(raw_input("    Year (%s): " % phase[3].year) or phase[3].year),
+      int(raw_input("    Month (%s): " % phase[3].month) or phase[3].month),
+      int(raw_input("    Day (%s): " % phase[3].day) or phase[3].day)
+    )
+    print " End time: "
+    new_phase['EndTime'] = datetime.date(
+      int(raw_input("    Year (%s): " % phase[4].year) or phase[4].year),
+      int(raw_input("    Month (%s): " % phase[4].month) or phase[4].month),
+      int(raw_input("    Day (%s): " % phase[4].day) or phase[4].day)
+    )
+    cursor.execute("""
+    UPDATE phase SET CampaignTitle = %(CampaignTitle)s, Goal = %(Goal)s, StartTimestamp = %(StartTime)s, EndTimeStamp = %(EndTime)s WHERE
+    PhaseNumber = %(PhaseNumber)s AND CampaignTitle = %(CampaignTitle)s;
+    """, new_phase)
   dbconn.commit()
   print "=== Done modifying the campaign. ==="
 
