@@ -176,10 +176,11 @@ def create_supporter():
     'Name': raw_input("Enter the supporter Name: "),
     'Email': raw_input("Enter the supporter Email: "),
     'Phone': raw_input("Enter the supporter Phone Number: "),
-    'Title': raw_input("Enter the supporter Title (Optional): ")
+    'Title': raw_input("Enter the supporter Title (Optional): "),
+    'Annotation': raw_input("Annotation: ")
   }
   cursor.execute("""
-  INSERT INTO supporter VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s);
+  INSERT INTO supporter VALUES (%(ID)s, %(Phone)s, %(Email)s, %(Name)s, %(Title)s), %(Annotation)s;
   """, the_supporter)
   print "=== Inserted supporter. ==="
   print "Collecting any additional information..."
@@ -207,6 +208,8 @@ def view_supporter(supporterID):
   print "Phone: %s" % supporter[1]
   if supporter[4] != None:
     print "Title: %s" % supporter[4]
+  if supporter[5] != None:
+    print "Annotation: %s" % supporter[5]
 
 def set_supporter(supporterID):
   """
@@ -222,12 +225,19 @@ def set_supporter(supporterID):
     'Email': raw_input("Email (%s): " % supporter[2]) or supporter[2],
     'Phone': raw_input("Phone (%s): " % supporter[1]) or supporter[1]
   }
+  # Title
   if supporter[4] == None or supporter[4] == '':
     supporter_input['Title'] = raw_input("Title: ") or None
   else:
     supporter_input['Title'] = raw_input("Title (%s): " % supporter[4]) or supporter[4]
+  # Annotation.
+  if supporter[5] == None or supporter[5] == '':
+    supporter_input['Annotation'] = raw_input("Annotation: ") or None
+  else:
+    supporter_input['Annotation'] = raw_input("Annotation (%s): " % supporter[5]) or supporter[5]
+  #
   cursor.execute("""
-  UPDATE supporter SET ID = %(ID)s, Phone = %(Phone)s, Email = %(Email)s, Name = %(Name)s, Title = %(Title)s WHERE
+  UPDATE supporter SET ID = %(ID)s, Phone = %(Phone)s, Email = %(Email)s, Name = %(Name)s, Title = %(Title)s, Annotation = %(Annotation)s WHERE
   ID = %(ID)s;
   """, supporter_input)
   dbconn.commit()
@@ -248,6 +258,8 @@ def delete_supporter(supporterID):
   print "   Phone: %s" % supporter[1]
   if supporter[4] != None:
     print "   Title: %s" % supporter[4]
+  if supporter[5] != None:
+    print "   Annotation: %s" % supporter[5]
   if raw_input("Are you sure you want to delete them? (y/N): ") == 'y':
     cursor.execute("""
     DELETE FROM supporter WHERE ID = (%s)
@@ -322,10 +334,11 @@ def create_campaign():
   the_campaign = {
     'Title': raw_input("Enter the campaign title: "),
     'Slogan': raw_input("Enter the campaign slogan: "),
-    'PhaseNumber': 1
+    'PhaseNumber': 1,
+    'Annotation': raw_input("Annotation: ")
   }
   cursor.execute("""
-  INSERT INTO campaign VALUES (%(Title)s, %(Slogan)s);
+  INSERT INTO campaign VALUES (%(Title)s, %(Slogan)s, %(PhaseNumber)s, %(Annotation)s);
   """, the_campaign)
   print "=== Inserted campaign. ==="
   print "Collecting any additional information..."
@@ -366,6 +379,8 @@ def view_campaign(campaignID):
   print "   Title:   %s" % campaign[0]
   print "   Slogan:  %s" % campaign[1]
   print "   Current Phase:   %s" % campaign[2]
+  if campaign[3]:
+    print "    Annotation: %s" % campaign[3]
   # Phases
   cursor.execute("""
   SELECT * FROM phase WHERE CampaignTitle = %s;
@@ -393,11 +408,12 @@ def set_campaign(campaignID):
     'OldTitle': campaign[0],
     'Title':    raw_input("  Title  (%s): " % campaign[0]) or campaign[0],
     'Slogan':   raw_input("  Slogan (%s): " % campaign[1]) or campaign[1],
-    'CurrentPhase': int(raw_input("  CurrentPhase (%d):  " % campaign[2]) or campaign[2])
+    'CurrentPhase': int(raw_input("  CurrentPhase (%d):  " % campaign[2]) or campaign[2]),
+    'Annotation': raw_input("  Annotation (%s): " % campaign[3]) or campaign[3]
   }
   # Modification
   cursor.execute("""
-  UPDATE campaign SET Title = %(Title)s, Slogan = %(Slogan)s, CurrentPhase = %(CurrentPhase)s WHERE
+  UPDATE campaign SET Title = %(Title)s, Slogan = %(Slogan)s, CurrentPhase = %(CurrentPhase)s, Annotation = %(Annotation)s WHERE
   Title = %(OldTitle)s;
   """, campaign_input)
   # Phases
@@ -406,7 +422,7 @@ def set_campaign(campaignID):
   SELECT * FROM phase WHERE CampaignTitle = %(Title)s;
   """, campaign_input)
   for phase in cursor.fetchall():
-    print "   Phase %d" % phase[0]
+    print "Phase %d" % phase[0]
     new_phase = {
         'PhaseNumber': phase[0],
         'CampaignTitle': campaign_input['Title'],
@@ -443,6 +459,8 @@ def delete_campaign(campaignID):
   print "   Title:   %s" % campaign[0]
   print "   Slogan:  %s" % campaign[1]
   print "   Current Phase:   %s" % campaign[2]
+  if campaign[3]:
+      print "   Annotation:   %s" % campaign[3]
   # Print Phases
   cursor.execute("""
   SELECT * FROM phase WHERE campaignTitle = %s;
@@ -528,7 +546,8 @@ def create_event():
   the_event = {
     'ID': raw_input("Enter the event ID: "),
     'Name': raw_input("Enter the event Name: "),
-    'Location': raw_input("Enter the event Location: ")
+    'Location': raw_input("Enter the event Location: "),
+    'Annotation': raw_input("Annotation: ")
   }
   # Datetimes
   print "Start Time:"
@@ -549,7 +568,7 @@ def create_event():
   )
   
   cursor.execute("""
-  INSERT INTO event VALUES (%(ID)s, %(Name)s, %(Location)s, %(StartTime)s, %(EndTime)s);
+  INSERT INTO event VALUES (%(ID)s, %(Name)s, %(Location)s, %(StartTime)s, %(EndTime)s, %(Annotation)s);
   """, the_event)
   print "=== Inserted event. ==="
   if raw_input("Is this event associated with a campaign/phase? (y/N)? ") == 'y':
@@ -574,6 +593,8 @@ def view_event(eventID):
   print "Location:  %s" % event[2]
   print "StartTime: %s" % event[3]
   print "EndTime:   %s" % event[4]
+  if event[5]:
+    print "Annotation: %s" % event[5] 
   cursor.execute("""
   SELECT * FROM PartOf WHERE EventID = %s;
   """, (event[0],))
@@ -593,7 +614,8 @@ def set_event(eventID):
   event_input = {
     'ID':    raw_input("ID (%s):    " % event[0]) or event[0],
     'Name':  raw_input("Name (%s):  " % event[1]) or event[1],
-    'Location': raw_input("Location (%s): " % event[2]) or event[2]
+    'Location': raw_input("Location (%s): " % event[2]) or event[2],
+    'Annotation': raw_input("Annotation (%s): " % event[5]) or event[5]
   }
   # Datetimes
   print " Start time: "
@@ -614,7 +636,7 @@ def set_event(eventID):
   )
   #
   cursor.execute("""
-  UPDATE event SET ID = %(ID)s, Name = %(Name)s, Location = %(Location)s, StartTimeStamp = %(StartTime)s, EndTimeStamp = %(EndTime)s WHERE
+  UPDATE event SET ID = %(ID)s, Name = %(Name)s, Location = %(Location)s, StartTimeStamp = %(StartTime)s, EndTimeStamp = %(EndTime)s, Annotation = %(Annotation)s WHERE
   ID = %(ID)s;
   """, event_input)
   # Check partof
@@ -657,6 +679,8 @@ def delete_event(eventID):
   print "Location:  %s" % event[2]
   print "StartTime: %s" % event[3]
   print "EndTime:   %s" % event[4]
+  if event[5]:
+    print "Annotation: %s" % event[5]
   cursor.execute("""
   SELECT * FROM partof WHERE eventID = (%s);
   """, (event[0],))

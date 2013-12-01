@@ -13,6 +13,7 @@ create table Campaign (
   Title           varchar(40),
   Slogan          varchar(60) default '',
   CurrentPhase    int default 1,  -- Ref's to Phase
+  annotation      text, -- For A4
   primary key(Title)
 );
 
@@ -31,6 +32,7 @@ create table Event (
   Location        varchar(60),
   StartTimestamp  timestamp with time zone,
   EndTimestamp    timestamp with time zone,
+  annotation      text, -- For A4
   primary key(ID)
 );
 
@@ -45,6 +47,7 @@ create table Account (
   ID              int,
   Purpose         varchar(60),
   Bank            varchar(60),
+  annotation      text, -- For A4
   primary key(ID)
 );
 
@@ -69,6 +72,7 @@ create table Supporter(
   Email           varchar(60),
   Name            varchar(60),
   Title           varchar(60),
+  annotation      text, -- For A4
   primary key(ID)
 );
 
