@@ -184,6 +184,7 @@ def create_supporter():
   """, the_supporter)
   print "=== Inserted supporter. ==="
   print "Collecting any additional information..."
+  # Workswith
   if raw_input("Does this supporter have a contact they work with? (y/N): ") == 'y':
     works_with = select_supporter()
     if works_with != '':
@@ -191,6 +192,13 @@ def create_supporter():
       INSERT INTO workswith VALUES (%s, %s), (%s, %s);
       """, (works_with, the_supporter["ID"], the_supporter["ID"], works_with,))
       print "=== Inserted workswith. ==="
+  # Employee?
+  if raw_input("Is this supporter an employee? (y/N): ") == 'y':
+    the_salary = int(raw_input("  What is their Salary per year? (1000): ") or 1000)
+    cursor.execute("""
+    INSERT INTO employee VALUES (%s, %s);
+    """, (the_supporter['ID'], the_salary,))
+  #
   dbconn.commit()
   print "=== Done creating a supporter. ==="
 
@@ -210,6 +218,12 @@ def view_supporter(supporterID):
     print "Title: %s" % supporter[4]
   if supporter[5] != None:
     print "Annotation: %s" % supporter[5]
+  # Salary?
+  cursor.execute("""
+  SELECT * FROM employee WHERE ID = %s
+  """, (supporter[0],))
+  for item in cursor.fetchall():
+    print "Salary: %s" % item[1]
   # WorksWith
   print "Working relationships:"
   cursor.execute("""
@@ -249,6 +263,21 @@ def set_supporter(supporterID):
   UPDATE supporter SET ID = %(ID)s, Phone = %(Phone)s, Email = %(Email)s, Name = %(Name)s, Title = %(Title)s, Annotation = %(Annotation)s WHERE
   ID = %(ID)s;
   """, supporter_input)
+  # Employee
+  cursor.execute("""
+  SELECT * FROM employee WHERE ID = %s;
+  """, (supporter[0],))
+  result = cursor.fetchall()
+  if len(result) > 0:
+    new_salary = int(raw_input("Salary (%s): " % result[0]) or result[0])
+    cursor.execute("""
+    UPDATE employee SET salary = %s WHERE ID = %s;
+    """, (new_salary, supporter[0],))
+  elif raw_input("Make this person an employee? (y/N)") == 'y':
+    new_salary = int(raw_input("Salary (1000): ") or 1000)
+    cursor.execute("""
+    INSERT INTO employee VALUES (%s, %s);
+    """, (supporter[0], new_salary,))
   # WorksWith
   cursor.execute("""
     SELECT * FROM workswith
@@ -742,14 +771,7 @@ def account_management():
     "   v - View details about a account.\n"
     "   a - Add an account.\n"
     "   m - Modify a account.\n"
-    "   d - Delete a account.\n"
-    "   b - Go back home."
-  )
-  command = raw_input("Select Functionality: ")
-  # Handle input.
-  if command == 'v':
-    # View details about a supporter.
-    print "=== View details about a account. ==="
+ print "=== View details about a account. ==="
     account = select_campaign()
     view_account(account)
   elif command == 'a':
