@@ -559,6 +559,7 @@ def event_management():
     "   v - View details about a event.\n"
     "   a - Add a event.\n"
     "   m - Modify a event.\n"
+    "   s - Set supporter attendance for an event. \n"
     "   d - Delete a event.\n"
     "   b - Go back home."
   )
@@ -578,6 +579,10 @@ def event_management():
     print "=== Modify a event. ==="
     event = select_event()
     set_event(event)
+  elif command == 's':
+    print "=== Set suupporter attendance for an event. ==="
+    event = select_event()
+    set_attendance(event)
   elif command == 'd':
     # Delete a event.
     print "=== Delete a event. ==="
@@ -728,6 +733,50 @@ def set_event(eventID):
   dbconn.commit()
   print "=== Done modifying the event. ==="
 
+def set_attendance(eventID):
+  """
+  Sets the attendance for events.
+  """
+  # Show members in the event currently.
+  print "Supporters currently participating:"
+  cursor.execute("""
+  SELECT * FROM supporter
+  INNER JOIN participatedIn ON (ID = supporterID)
+  WHERE eventID = %s
+  """, (eventID,))
+  for item in cursor.fetchall():
+    print "  %d - %s" % (item[0], item[3])
+  # Offer to add or delete.
+  command = raw_input("Would you like to (a)dd or (d)elete a member? (Otherwise return home): ")
+  if command == 'a':
+    # On add, show a list of members who didn't attend.
+    cursor.execute("""
+    SELECT * FROM supporter WHERE NOT EXISTS ( SELECT * FROM participatedIn WHERE ID = supporterID AND eventID = %s);
+    """, (eventID,))
+    for item in cursor.fetchall():
+      print "  %d - %s" % (item[0], item[3])
+    choice = raw_input("Select a member by ID: ")
+    if choice:
+      cursor.execute("""
+      INSERT INTO participatedIn
+      VALUES (%s, %s);
+      """, (choice, eventID,))
+      print "=== That member is now participating in the event. ==="
+      dbconn.commit()
+      set_attendance(eventID)
+  elif command == 'd':
+    # On delete, ask them to select a member to remove.
+    choice = raw_input("Select a member by ID: ")
+    if choice:
+      cursor.execute("""
+      DELETE FROM participatedIn
+      WHERE supporterID = %s AND eventID = %s;
+      """, (choice, eventID,))
+      print "=== That member is no longer participating in the event. ==="
+      dbconn.commit()
+      set_attendance(eventID)
+
+
 def delete_event(eventID):
   """
   Deletes a event
@@ -770,8 +819,15 @@ def account_management():
     "Your options are:\n"
     "   v - View details about a account.\n"
     "   a - Add an account.\n"
-    "   m - Modify a account.\n"
- print "=== View details about a account. ==="
+    "   m - Modify an account.\n"
+    "   d - Delete an account.\n"
+    "   b - Go back."
+  )
+  command = raw_input("Select Functionality: ")
+  # Handle input.
+  if command == 'v':
+    # View details about a supporter.
+    print "=== View details about a account. ==="
     account = select_campaign()
     view_account(account)
   elif command == 'a':
