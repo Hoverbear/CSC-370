@@ -987,14 +987,16 @@ def set_account(accountID):
     elif choice == 'd':
       choices = []
       for i, item in enumerate(funding_streams):
-        choices.append(item)
+        choices.append(item[5])
         print "  %d - %s" % (i, item[5])
-        victim = choices[int(raw_input("Select the stream to remove: "))]
-      # Remove a funding stream.
-      cursor.execute("""
-      DELETE FROM fundingStream WHERE (%s, %s);
-      """, (edited_account['ID'], victim,))
-      print "=== Stream Removed. ==="
+      chosen_stream = raw_input("Select the stream to remove: ")
+      if chosen_stream:
+        victim = choices[int(chosen_stream)]
+        # Remove a funding stream.
+        cursor.execute("""
+        DELETE FROM fundingStream WHERE accountID = %s AND Title = %s;
+        """, (edited_account['ID'], victim,))
+        print "=== Stream Removed. ==="
     # Need to catch duplicates!
     # Access
     cursor.execute("""
@@ -1004,9 +1006,29 @@ def set_account(accountID):
     WHERE account.id = %s;
     """, (accountID,))
     print "  Access to:"
-    for item in cursor.fetchall():
-      print "    %s" % item[9]   
-
+    access_list = cursor.fetchall()
+    for item in access_list:
+      print "    %s" % item[9]
+    choice = raw_input("Do you want to (a)dd or (d)elete access to an account? (Otherwise nothing to continue): ")
+    if choice == 'a':
+      # Add Access.
+      print "Please select a supporter."
+      cursor.execute("""
+      INSERT INTO access VALUES (%s, %s);
+      """, (edited_account['ID'], select_supporter(),))
+      print "=== Access added. ==="
+    elif choice == 'd':
+      # Remove a funding stream.
+      for item in access_list:
+        print item
+        print "  %d - %s" % (item[6], item[9])
+      victim = int(raw_input("Select the access to remove: "))
+      cursor.execute("""
+      DELETE FROM fundingStream WHERE (%s, %s);
+      """, (edited_account['ID'], victim,))
+      print "=== Access Removed. ==="
+  dbconn.commit()
+    
 ############################################
 # Main                                     #
 ############################################
