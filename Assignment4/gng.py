@@ -1028,7 +1028,117 @@ def set_account(accountID):
       """, (edited_account['ID'], victim,))
       print "=== Access Removed. ==="
   dbconn.commit()
-    
+
+def delete_account(accountID):
+  print "=== Deleting account. ==="
+  cursor.execute("""
+  DELETE FROM fundingStream
+  WHERE accountID = %s;
+  """, (accountID,))
+  cursor.execute("""
+  DELETE FROM access
+  WHERE accountID = %s;
+  """, (accountID,))
+  cursor.execute("""
+  DELETE FROM payment
+  WHERE accountID = %s;
+  """, (accountID,))
+  cursor.execute("""
+  DELETE FROM account
+  WHERE ID = %s;
+  """, (accountID,))
+  dbconn.commit()
+
+############################################
+# Payment                                  #
+############################################
+
+def payment_management():
+  print (
+    "Your options are:\n"
+    "   v - View details about a payment.\n"
+    "   a - Add a payment.\n"
+    "   m - Modify a payment.\n"
+    "   d - Delete a payment.\n"
+    "   b - Go back."
+  )
+  command = raw_input("Select Functionality: ")
+  # Handle input.
+  if command == 'v':
+    # View details about a payment.
+    print "=== View details about a payment. ==="
+    payment = select_payment()
+    view_payment(payment)
+  elif command == 'a':
+    # Add a payment.
+    print "=== Add a payment. ==="
+    create_payment()
+  elif command == 'm':
+    # Modify a payment.
+    print "=== Modify a payment. ==="
+    payment = select_payment()
+    set_payment(payment)
+  elif command == 'd':
+    # Delete a payment.
+    print "=== Delete a payment. ==="
+    payment = select_payment()
+    delete_payment(payment)
+  # elif command == 'b':
+  #   Do nothing.
+  return
+
+def select_payment():
+  # Select an account.
+  print "First, select an account to look for payments in."
+  account_id = select_account()
+  if account_id == None:
+    return None
+  print "Finding payments..."
+  cursor.execute("""
+  SELECT * FROM payment
+  WHERE accountID = %s;
+  """, (account_id,))
+  for item in cursor.fetchall():
+    print "  %d - ($%d) %s" % (item[0], item[2], item[4])
+  payment_id = raw_input("Select a payment by ID: ")
+  if payment_id == None:
+    return None
+  return payment_id
+
+def view_payment(paymentID):
+  # Get the payment.
+  cursor.execute("""
+  SELECT * FROM payment
+  WHERE ID = %s;
+  """, (paymentID,))
+  for payment in cursor.fetchall():
+    print "  ID: %s" % payment[0]
+    print "  AccountID: %s" % payment[1]
+    print "  Amount: $%d" % payment[2]
+    print "  DateTime: %s" % payment[3]
+    print "  Description: %s" % payment[4]
+    # Reimbursement/Donation for an account?
+    cursor.execute("""
+    SELECT * FROM ReimbursementDonation
+    INNER JOIN supporter ON (supporterID = supporter.ID)
+    WHERE paymentID = %s;
+    """, (paymentID,))
+    supporter_result = cursor.fetchall()
+    if len(supporter_result) > 0:
+      print "This is a reimbursement or donation for:"
+      for supporter in supporter_result:
+        print "  %d - %s" % (supporter[1], supporter[4])
+    # Expense/Donation
+    cursor.execute("""
+    SELECT * FROM ExpenseDonation
+    WHERE PaymentID = %s;
+    """, (paymentID,))
+    campaign_result = cursor.fetchall()
+    if len(campaign_result) > 0:
+      print "This is an Expense of Donation towards the campaign:"
+      for campaign in campaign_result:
+        print "  %s" % campaign[1]
+
 ############################################
 # Main                                     #
 ############################################
@@ -1060,6 +1170,7 @@ def main(argv=None):
       "   c - Campaign Management.\n"
       "   e - Event Management.\n"
       "   a - Account Management.\n"
+      "   p - Payment Management.\n"
       "   z - Make a custom SQL statement. (Advanced)\n"
       "   q - Quits the program."
     )
@@ -1077,22 +1188,26 @@ def main(argv=None):
     elif command == 's':
       # Supporter Management.
       print "=== Supporter Management. ==="
-      supporter_management();
+      supporter_management()
     elif command == 'c':
       # Campaign Management
       print "=== Campaign Management. ==="
-      campaign_management();
+      campaign_management()
     elif command == 'e':
       print "=== Event Management ==="
-      event_management();
+      event_management()
     elif command == 'a':
       # Account Management.
       print "=== Account Management. ==="
-      account_management();
+      account_management()
+    elif command == 'p':
+      # Payment Management.
+      print "=== Payment Management. ==="
+      payment_management()
     elif command == 'z':
       # Make a custom SQL statement. (Advanced)
       print "=== Make a custom SQL statement. (Advanced) ==="
-      custom_statement();
+      custom_statement()
     elif command == 'q':
       # Quit
       print "=== Quits the program. ==="
