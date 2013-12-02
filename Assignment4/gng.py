@@ -857,7 +857,7 @@ def select_account():
   SELECT * FROM one;
   """)
   for item in cursor.fetchall():
-    print "  %d - %s (Balance: %d)" % (item[0], item[1], item[4])
+    print "  %d - %s (Balance: $%d)" % (item[0], item[1], item[3])
   return raw_input("Choose an account by ID: ")
 
 def view_account(accountID):
@@ -866,13 +866,34 @@ def view_account(accountID):
   """
   cursor.execute("""
   SELECT * FROM account
-  WHERE ID = %s;
+  WHERE account.id = %s;
   """, (accountID,))
-  for account in cursor.fetchall():
-    print "  ID:         %s" % account[0]
-    print "  Purpose:    %s" % account[1]
-    print "  Bank:       %s" % account[2]
-    print "  Annotation: %s" % account[3]
+  results = cursor.fetchall()
+  if len(results) > 0:
+    print "  ID:         %s" % results[0][0]
+    print "  Purpose:    %s" % results[0][1]
+    print "  Bank:       %s" % results[0][2]
+    print "  Annotation: %s" % results[0][3]
+    # Funding Streams
+    print "  Funding Stream for:"
+    cursor.execute("""
+    SELECT * FROM account
+    INNER JOIN fundingStream ON (account.id = fundingStream.accountID)
+    WHERE account.id = %s;
+    """, (accountID,))
+    for item in cursor.fetchall():
+      print "    %s" % item[5]
+    # Need to catch duplicates!
+    # Access
+    cursor.execute("""
+    SELECT * FROM account
+    INNER JOIN access ON (access.accountID = account.ID)
+    INNER JOIN supporter ON (access.supporterID = supporter.ID)
+    WHERE account.id = %s;
+    """, (accountID,))
+    print "  Access to:"
+    for item in cursor.fetchall():
+      print "    %s" % item[9]
 
 def create_account():
   """
@@ -909,7 +930,27 @@ def create_account():
       print "=== Access granted. ==="
   dbconn.commit()
       
-
+def set_account(accountID):
+  """
+  Modifies an existing account.
+  """
+  cursor.execute("""
+  SELECT * FROM account
+  WHERE id = %s;
+  """, (accountID,))
+  for account in cursor.fetchall():
+    the_account = {
+      'ID': int(raw_input("Select an ID (%s): " % account[0]) or account[0]),
+      'Purpose': raw_input("What is the accounts purpose? (%s): " % account[1]) or account[1],
+      'Bank': raw_input("Which bank is this account with? (%s): " % account[2]) or account[2],
+      'Annotation': raw_input("Annotation (%s): " % account[3]) or account[3],
+      'oldID': account[0]
+    }
+    cursor.execute("""
+    UPDATE account SET ID = %(ID)s, Purpose = %(Purpose)s, Bank = %(Bank)s, Annotation = %(Annotation)s
+    WHERE ID = %(oldID)s;
+    """, the_account)
+    
 
 ############################################
 # Main                                     #
