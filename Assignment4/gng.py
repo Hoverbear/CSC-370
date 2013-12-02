@@ -1175,6 +1175,29 @@ def create_payment():
       print "=== Set to expense or donation. ==="
   dbconn.commit()
 
+def delete_payment(paymentID):
+  # Confirm.
+  print "Please confirm this is the payment you want to recieve."
+  view_payment(paymentID)
+  if raw_input("Are you sure you want to delete this payment? (y/N): ") == 'y':
+    # Delete it
+    cursor.execute("""
+    DELETE FROM reimbursementDonation
+    WHERE paymentID = %s;
+    """, (paymentID,))
+    cursor.execute("""
+    DELETE FROM expenseDonation
+    WHERE paymentID = %s;
+    """, (paymentID,))
+    cursor.execute("""
+    DELETE FROM payment
+    WHERE ID = %s;
+    """, (paymentID,))
+    dbconn.commit()
+    print "=== Removed that payment. ==="
+  else:
+    print "=== Delete aborted. ==="
+
 ############################################
 # Main                                     #
 ############################################
