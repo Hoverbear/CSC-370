@@ -723,8 +723,8 @@ def set_event(eventID):
         new_campaign = select_campaign()
         new_phase = raw_input("New Phase Number: ")
         cursor.execute("""
-        UPDATE partof SET title = (%s), PhaseNumber = (%s) WHERE
-        eventID = %s AND title = %s AND phaseNumber = %s;
+        UPDATE partof SET title = (%s), PhaseNumber = (%s)
+        WHERE eventID = %s AND title = %s AND phaseNumber = %s;
         """, (new_campaign, new_phase, part[0], part[1], part[2],))
   elif raw_input("Add this event to a campaign? (y/N): ") == 'y':
     cursor.execute("""
@@ -910,16 +910,16 @@ def create_account():
   INSERT INTO account VALUES (%(ID)s, %(Purpose)s, %(Bank)s, %(Annotation)s)
   """, the_account)
   # Additional data.
-  if raw_input("Is this a funding steam for any particular campaign? (y/N): ") == 'y':
+  while raw_input("Is this a funding steam for any (other) particular campaign? (y/N): ") == 'y':
     # It's a funding stream.
     print "For which campaign?"
     choice = select_campaign()
     if choice:
       cursor.execute("""
       INSERT INTO fundingStream VALUES (%s, %s);
-      """, (account['ID'], choice,))
+      """, (the_account['ID'], choice,))
       print "=== Now a funding stream. ==="
-  if raw_input("Do any supporters have access to this account? (y/N): ") == 'y':
+  while raw_input("Do any (other)  supporters have access to this account? (y/N): ") == 'y':
     # Someone has access.
     print "Which person has access?"
     choice = select_supporter()
@@ -928,6 +928,21 @@ def create_account():
       INSERT INTO access VALUES (%s, %s);
       """, (the_account['ID'], choice,))
       print "=== Access granted. ==="
+  # Create the initializer payment.
+  cursor.execute("""
+  SELECT max(ID) FROM payment
+  """)
+  new_payment = {
+    'ID': cursor.fetchall()[0][0] + 1,
+    'AccountID': the_account['ID'],
+    'Amount': 0,
+    'DateTime': datetime.datetime.now(),
+    'Description': "Initializer Payment"
+  }
+  cursor.execute("""
+  INSERT INTO payment VALUES (%(ID)s, %(AccountID)s, %(Amount)s, %(DateTime)s, %(Description)s);
+  """, (new_payment))
+  # Commit
   dbconn.commit()
       
 def set_account(accountID):
@@ -936,21 +951,61 @@ def set_account(accountID):
   """
   cursor.execute("""
   SELECT * FROM account
-  WHERE id = %s;
+  WHERE account.id = %s;
   """, (accountID,))
-  for account in cursor.fetchall():
-    the_account = {
-      'ID': int(raw_input("Select an ID (%s): " % account[0]) or account[0]),
-      'Purpose': raw_input("What is the accounts purpose? (%s): " % account[1]) or account[1],
-      'Bank': raw_input("Which bank is this account with? (%s): " % account[2]) or account[2],
-      'Annotation': raw_input("Annotation (%s): " % account[3]) or account[3],
-      'oldID': account[0]
+  results = cursor.fetchall()
+  if len(results) > 0:
+    edited_account = {
+      'ID': int(raw_input("  ID (%s): " % results[0][0]) or results[0][0]),
+      'Purpose': raw_input("  Purpose (%s): " % results[0][1]) or results[0][1],
+      'Bank': raw_input("  Bank: (%s): " % results[0][2]) or results[0][2],
+      'Annotation': raw_input( "  Annotation (%s): " % results[0][3]) or results[0][3],
+      'oldID': results[0][0]
     }
     cursor.execute("""
     UPDATE account SET ID = %(ID)s, Purpose = %(Purpose)s, Bank = %(Bank)s, Annotation = %(Annotation)s
-    WHERE ID = %(oldID)s;
-    """, the_account)
-    
+    WHERE  ID = %(oldID)s;
+    """, edited_account)
+    # Funding Streams
+    print "  Funding Stream for:"
+    cursor.execute("""
+    SELECT * FROM account
+    INNER JOIN fundingStream ON (account.id = fundingStream.accountID)
+    WHERE account.id = %s;
+    """, (accountID,))
+    funding_streams = cursor.fetchall()
+    for item in funding_streams:
+      print "    %s" % item[5]
+    choice = raw_input("Do you want to (a)dd or (d)elete a funding stream? (Otherwise nothing to continue): ")
+    if choice == 'a':
+      # Add a funding stream.
+      print "Please select a campaign."
+      cursor.execute("""
+      INSERT INTO fundingstream VALUES (%s, %s);
+      """, (edited_account['ID'], select_campaign(),))
+      print "=== Stream added. ==="
+    elif choice == 'd':
+      choices = []
+      for i, item in enumerate(funding_streams):
+        choices.append(item)
+        print "  %d - %s" % (i, item[5])
+        victim = choices[int(raw_input("Select the stream to remove: "))]
+      # Remove a funding stream.
+      cursor.execute("""
+      DELETE FROM fundingStream WHERE (%s, %s);
+      """, (edited_account['ID'], victim,))
+      print "=== Stream Removed. ==="
+    # Need to catch duplicates!
+    # Access
+    cursor.execute("""
+    SELECT * FROM account
+    INNER JOIN access ON (access.accountID = account.ID)
+    INNER JOIN supporter ON (access.supporterID = supporter.ID)
+    WHERE account.id = %s;
+    """, (accountID,))
+    print "  Access to:"
+    for item in cursor.fetchall():
+      print "    %s" % item[9]   
 
 ############################################
 # Main                                     #
