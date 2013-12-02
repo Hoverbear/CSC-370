@@ -1139,6 +1139,42 @@ def view_payment(paymentID):
       for campaign in campaign_result:
         print "  %s" % campaign[1]
 
+def create_payment():
+  # Get the max ID so far.
+  cursor.execute("""
+  SELECT max(id) FROM payment
+  """)
+  the_max = cursor.fetchall()[0][0]
+  # Set up for a new payment.
+  print "You'll now select the account this payment is for, and the details about it."
+  the_payment = {
+    'ID': the_max + 1,
+    'AccountID': select_account(),
+    'Amount': int(raw_input("Enter payment amount ($): ")),
+    'DateTime': datetime.datetime.now(),
+    'Description': raw_input("Enter a description: ")
+  }
+  cursor.execute("""
+  INSERT INTO payment VALUES (%(ID)s, %(AccountID)s, %(Amount)s, %(DateTime)s, %(Description)s);
+  """, the_payment)
+  if raw_input("Is this a reimbursement or donation to/from a person? (y/N): ") == 'y':
+    print "Next, you'll select a supporter this is for."
+    supporterID = select_supporter()
+    if supporterID != None:
+      cursor.execute("""
+      INSERT INTO reimbursementDonation VALUES (%s, %s);
+      """, (the_payment['ID'], supporterID,))
+      print "=== Set to reimbursement or donation. ==="
+  if raw_input("Is this a campaign expense or donation? (y/N): ") == 'y':
+    print "Next, you'll select a campaign this is for."
+    campaignID = select_campaign()
+    if campaignID != None:
+      cursor.execute("""
+      INSERT INTO expenseDonation VALUES (%s, %s);
+      """, (the_payment['ID'], campaignID,))
+      print "=== Set to expense or donation. ==="
+  dbconn.commit()
+
 ############################################
 # Main                                     #
 ############################################
