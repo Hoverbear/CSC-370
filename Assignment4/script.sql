@@ -123,7 +123,7 @@ create table Organizes (
 --------------------------------------------
 -- Balance Sheet
 create view one as
-  select Account.ID, Purpose, Bank, Sum(Amount) as Balance
+  select Account.ID as ID, Purpose, Bank, Sum(Amount) as Balance
   from Payment 
   inner join Account on (Payment.AccountID = Account.ID)
   group by Account.ID;

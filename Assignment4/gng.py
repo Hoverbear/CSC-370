@@ -159,7 +159,8 @@ def select_supporter():
   """
   print "Select a supporter:"
   cursor.execute("""
-  SELECT * FROM supporter;
+  SELECT * FROM supporter
+  ORDER BY ID;
   """)
   for supporter in cursor.fetchall():
     # Supporter[0] is the supporter's ID.
@@ -234,6 +235,13 @@ def view_supporter(supporterID):
   """, (supporter[0],))
   for item in cursor.fetchall():
     print "  %s works with %s" % (supporter[3], item[5])
+  # Employees
+  cursor.execute("""
+  SELECT * FROM employee
+  WHERE ID = (%s);
+  """, (supporter[0],))
+  for item in cursor.fetchall():
+    print "  Salary: %d" % item[1]
 
 def set_supporter(supporterID):
   """
@@ -323,10 +331,13 @@ def delete_supporter(supporterID):
     print "   Annotation: %s" % supporter[5]
   if raw_input("Are you sure you want to delete them? (y/N): ") == 'y':
     cursor.execute("""
-    DELETE FROM workswith WHERE supporter1 = (%s)
+    DELETE FROM employee WHERE ID = (%s);
     """, (supporter[0],))
     cursor.execute("""
-    DELETE FROM supporter WHERE ID = (%s)
+    DELETE FROM workswith WHERE supporter1 = (%s);
+    """, (supporter[0],))
+    cursor.execute("""
+    DELETE FROM supporter WHERE ID = (%s);
     """, (supporterID,))
     dbconn.commit()
     print "=== Deleted %s from the database. ===" % supporter[3]
@@ -380,7 +391,8 @@ def select_campaign():
   """
   print "Select a campaign:"
   cursor.execute("""
-  SELECT * FROM campaign;
+  SELECT * FROM campaign
+  ORDER BY Title;
   """)
   choices = []
   for i, campaign in enumerate(cursor.fetchall()):
@@ -599,11 +611,13 @@ def select_event():
   """
   print "Select a event:"
   cursor.execute("""
-  SELECT * FROM event;
+  SELECT * FROM event
+  INNER JOIN PartOf ON (EventID = event.id)
+  ORDER BY event.id;
   """)
   for event in cursor.fetchall():
     # event[0] is the event's ID.
-    print "   %d - %s (%s)" % (event[0], event[1], event[2])
+    print "   %d - %s :: %s (%s)" % (event[0], event[7], event[1], event[2])
   command = raw_input("Select your event: ")
   return command
 
@@ -855,7 +869,8 @@ def select_account():
   """
   # Get the balance sheet, since it's a good representation of the accounts.
   cursor.execute("""
-  SELECT * FROM one;
+  SELECT * FROM one
+  ORDER BY ID;
   """)
   for item in cursor.fetchall():
     print "  %d - %s (Balance: $%d)" % (item[0], item[1], item[3])
@@ -1097,7 +1112,8 @@ def select_payment():
   print "Finding payments..."
   cursor.execute("""
   SELECT * FROM payment
-  WHERE accountID = %s;
+  WHERE accountID = %s
+  ORDER BY ID;
   """, (account_id,))
   for item in cursor.fetchall():
     print "  %d - ($%d) %s" % (item[0], item[2], item[4])
@@ -1340,7 +1356,7 @@ def main(argv=None):
   )
   # Main program loop.
   while (True):
-    #try:
+    try:
       # Top level Prompt.
       print (
         "Your options are:\n"
@@ -1402,8 +1418,8 @@ def main(argv=None):
         print "=== Quits the program. ==="
         return 0;
       print "=== Returning to Home.==="
-    #except:
-      #print "There was an error with your input... Please try again."
+    except:
+      print "There was an error with your input... Please try again."
 
 if __name__ == "__main__":
   sys.exit(main())
