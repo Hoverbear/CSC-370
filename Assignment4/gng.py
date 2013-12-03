@@ -10,6 +10,7 @@ import sys
 import getopt
 import psycopg2 # Postgres
 import datetime # Dates
+import subprocess # Backups
 
 # Global Variables
 dbconn = None
@@ -1246,7 +1247,6 @@ def salary_graph():
   ORDER BY employee.id;
   """)
   employees = cursor.fetchall()
-  print employees
   # Get the max salary.
   the_max = 0
   for employee in employees:
@@ -1271,8 +1271,6 @@ def participation_graph():
   ORDER BY ID;
   """)
   supporters = cursor.fetchall()
-  for supporter in supporters:
-    print supporter
   # Get the max salary.
   the_max = 0
   for supporter in supporters:
@@ -1291,8 +1289,6 @@ def social_graph():
   ORDER BY id;
   """)
   supporters = cursor.fetchall()
-  for supporter in supporters:
-    print supporter
   # Get the max salary.
   the_max = 0
   for supporter in supporters:
@@ -1302,6 +1298,24 @@ def social_graph():
   # Print out the list of results along with their graphs.
   for supporter in supporters:
     print "  %3d-%20s %5d %s" % (supporter[0], supporter[1], supporter[5], bar_graph(supporter[5], the_max))
+
+
+############################################
+# Backups                                  #
+############################################
+def backup_management():
+  print "These commands reference the file ./gng_dump! Please make sure it's there (or not!)"
+  command = raw_input("Would you like to (b)ackup or (r)estore?: ")
+  if command == 'b':
+    # Make a backup.
+    subprocess.Popen("PGPASSWORD='eJYbM9CI' pg_dump --host=studentdb.csc.uvic.ca --user=c370_s19 --no-password -f ./gng_dump", shell=True)
+    print "Your file is saved to ./gng_dump"
+  elif command == 'r':
+    # Restore from backup.
+    print "NOTICE: Since this assignment does not allow us to restore to a database (permissions), we're just restoring from stock data. The real code is commented out."
+    subprocess.Popen("PGPASSWORD='eJYbM9CI' psql --host=studentdb.csc.uvic.ca --user=c370_s19 --no-password -f ./script.sql &> /dev/null", shell=True)
+    #subprocess.Popen("PGPASSWORD='eJYbM9CI' psql --host=studentdb.csc.uvic.ca --user=c370_s19 --no-password -f ./gng_dump &> /dev/null", shell=True)
+    #print "Your database is restored from ./gng_dump"
 
 ############################################
 # Main                                     #
@@ -1326,7 +1340,7 @@ def main(argv=None):
   )
   # Main program loop.
   while (True):
-    try:
+    #try:
       # Top level Prompt.
       print (
         "Your options are:\n"
@@ -1337,6 +1351,7 @@ def main(argv=None):
         "   a - Account Management.\n"
         "   p - Payment Management.\n"
         "   g - View available graphs.\n"
+        "   u - Backup management.\n"
         "   z - Make a custom SQL statement. (Advanced)\n"
         "   q - Quits the program."
       )
@@ -1378,13 +1393,17 @@ def main(argv=None):
         # Make a custom SQL statement. (Advanced)
         print "=== Make a custom SQL statement. (Advanced) ==="
         custom_statement()
+      elif command == 'u':
+        # Backup management.
+        print "=== Backup Management ==="
+        backup_management()
       elif command == 'q':
         # Quit
         print "=== Quits the program. ==="
         return 0;
       print "=== Returning to Home.==="
-    except:
-      print "There was an error with your input... Please try again."
+    #except:
+      #print "There was an error with your input... Please try again."
 
 if __name__ == "__main__":
   sys.exit(main())
