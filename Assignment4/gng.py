@@ -1199,6 +1199,111 @@ def delete_payment(paymentID):
     print "=== Delete aborted. ==="
 
 ############################################
+# Graphs                                   #
+############################################
+available_graphs = [
+  {
+    'title': 'Salaries',
+    'description': "Compare salaries between different employees."
+  },
+  {
+    'title': 'Participation',
+    'description': "Compare participation rates in different campaigns."
+  },
+  {
+    'title': 'Social Groups',
+    'description': 'Compare the size of various social groups.'
+  }
+]
+
+def graph_menu():
+  print "Select a graph: "
+  for i, value in enumerate(available_graphs):
+    print "  %d - %s: %s" % (i, value['title'], value['description'])
+  choice = int(raw_input("Choose by number (or nothing to go back): "))
+  if choice == 0:
+    # Salaries.
+    salary_graph()
+  elif choice == 1:
+    # Participation.
+    participation_graph()
+  elif choice == 2:
+    # Social groups.
+    social_graph()
+  return
+
+def bar_graph(value, highest):
+  norm_value = (float(value) / float(highest)) * 20
+  return ''.join(['.' if (i <= norm_value) else ' ' for i in range(20)])
+
+def salary_graph():
+  print "Displaying Salary Graph:"
+  # Populate our data. Need all employees, with their supporter information.
+  cursor.execute("""
+  SELECT employee.id, name, salary
+  FROM employee
+  INNER JOIN supporter ON (supporter.id = employee.id)
+  ORDER BY employee.id;
+  """)
+  employees = cursor.fetchall()
+  print employees
+  # Get the max salary.
+  the_max = 0
+  for employee in employees:
+    if employee[2] > the_max:
+      the_max = employee[2]
+  print the_max
+  # Print out the list of results along with their graphs.
+  for employee in employees:
+    print "  %3d-%20s %5d %s" % (employee[0], employee[1], employee[2], bar_graph(employee[2], the_max))
+
+def participation_graph():
+  print "Displaying Participation Graph:"
+  # Populate our data. Need all employees, with their supporter information.
+  cursor.execute("""
+  select ID, Name, Phone, Email, Title, NumberOfEvents
+  from (
+    select supporter.ID, Name, Phone, Email, Title, count(ParticipatedIn) as NumberOfEvents
+    from Supporter
+    inner join ParticipatedIn on (Supporter.ID = ParticipatedIn.SupporterID)
+    group by Supporter.ID
+  ) as query
+  ORDER BY ID;
+  """)
+  supporters = cursor.fetchall()
+  for supporter in supporters:
+    print supporter
+  # Get the max salary.
+  the_max = 0
+  for supporter in supporters:
+    if supporter[5] > the_max:
+      the_max = supporter[5]
+  print the_max
+  # Print out the list of results along with their graphs.
+  for supporter in supporters:
+    print "  %3d-%20s %5d %s" % (supporter[0], supporter[1], supporter[5], bar_graph(supporter[5], the_max))
+
+def social_graph():
+  print "Displaying Social Graph:"
+  # Populate our data. Need all employees, with their supporter information.
+  cursor.execute("""
+  SELECT * FROM six
+  ORDER BY id;
+  """)
+  supporters = cursor.fetchall()
+  for supporter in supporters:
+    print supporter
+  # Get the max salary.
+  the_max = 0
+  for supporter in supporters:
+    if supporter[5] > the_max:
+      the_max = supporter[5]
+  print the_max
+  # Print out the list of results along with their graphs.
+  for supporter in supporters:
+    print "  %3d-%20s %5d %s" % (supporter[0], supporter[1], supporter[5], bar_graph(supporter[5], the_max))
+
+############################################
 # Main                                     #
 ############################################
 
@@ -1221,57 +1326,65 @@ def main(argv=None):
   )
   # Main program loop.
   while (True):
-    # Top level Prompt.
-    print (
-      "Your options are:\n"
-      "   b - Browse Prebuilt Queries.\n"
-      "   s - Supporter Management.\n"
-      "   c - Campaign Management.\n"
-      "   e - Event Management.\n"
-      "   a - Account Management.\n"
-      "   p - Payment Management.\n"
-      "   z - Make a custom SQL statement. (Advanced)\n"
-      "   q - Quits the program."
-    )
-    command = raw_input("Select Functionality: ")
-    # Handle input.
-    if command == 'b':
-      # Browse Queries.
-      print "=== Browse Prebuilt Queries. =="
-      query = select_queries();
-      if query is not None:
-        result = select_all(query)
-        print_as_table(result['schema'], result['data'])
-      else:
-        continue
-    elif command == 's':
-      # Supporter Management.
-      print "=== Supporter Management. ==="
-      supporter_management()
-    elif command == 'c':
-      # Campaign Management
-      print "=== Campaign Management. ==="
-      campaign_management()
-    elif command == 'e':
-      print "=== Event Management ==="
-      event_management()
-    elif command == 'a':
-      # Account Management.
-      print "=== Account Management. ==="
-      account_management()
-    elif command == 'p':
-      # Payment Management.
-      print "=== Payment Management. ==="
-      payment_management()
-    elif command == 'z':
-      # Make a custom SQL statement. (Advanced)
-      print "=== Make a custom SQL statement. (Advanced) ==="
-      custom_statement()
-    elif command == 'q':
-      # Quit
-      print "=== Quits the program. ==="
-      return 0;
-    print "=== Returning to Home.==="
+    try:
+      # Top level Prompt.
+      print (
+        "Your options are:\n"
+        "   b - Browse Prebuilt Queries.\n"
+        "   s - Supporter Management.\n"
+        "   c - Campaign Management.\n"
+        "   e - Event Management.\n"
+        "   a - Account Management.\n"
+        "   p - Payment Management.\n"
+        "   g - View available graphs.\n"
+        "   z - Make a custom SQL statement. (Advanced)\n"
+        "   q - Quits the program."
+      )
+      command = raw_input("Select Functionality: ")
+      # Handle input.
+      if command == 'b':
+        # Browse Queries.
+        print "=== Browse Prebuilt Queries. =="
+        query = select_queries();
+        if query is not None:
+          result = select_all(query)
+          print_as_table(result['schema'], result['data'])
+        else:
+          continue
+      elif command == 's':
+        # Supporter Management.
+        print "=== Supporter Management. ==="
+        supporter_management()
+      elif command == 'c':
+        # Campaign Management
+        print "=== Campaign Management. ==="
+        campaign_management()
+      elif command == 'e':
+        print "=== Event Management ==="
+        event_management()
+      elif command == 'a':
+        # Account Management.
+        print "=== Account Management. ==="
+        account_management()
+      elif command == 'p':
+        # Payment Management.
+        print "=== Payment Management. ==="
+        payment_management()
+      elif command == 'g':
+        # View available graphs
+        print "=== Viewing available graphs. ==="
+        graph_menu()
+      elif command == 'z':
+        # Make a custom SQL statement. (Advanced)
+        print "=== Make a custom SQL statement. (Advanced) ==="
+        custom_statement()
+      elif command == 'q':
+        # Quit
+        print "=== Quits the program. ==="
+        return 0;
+      print "=== Returning to Home.==="
+    except:
+      print "There was an error with your input... Please try again."
 
 if __name__ == "__main__":
   sys.exit(main())

@@ -4,3 +4,4 @@ Added "annotation" on Campaign.
 Added "annotation" on Event.
 Added "annotation" on Account.
 Added "annotation" on Supporter.
+Added ID to several prebuilt queries.

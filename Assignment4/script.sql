@@ -163,7 +163,7 @@ create view five as
 
 -- Social Groups
 create view six as
-  select Name, Phone, Email, Title, Count(Supporter.ID)
+  select supporter.id, Name, Phone, Email, Title, Count(Supporter.ID)
   from Supporter
   inner join WorksWith on (Supporter.ID = WorksWith.Supporter1)
     or (Supporter.ID = WorksWith.Supporter2)
