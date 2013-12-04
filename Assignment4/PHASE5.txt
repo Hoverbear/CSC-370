@@ -1,0 +1,1 @@
+A database restore/backup functionality was added to support easy data constistency. However due to limits on our authentication with the psql server we can't restore from file, so instead I used the script I wrote for assigntment 3 which populates the database. The code for a real restore is commented out.
